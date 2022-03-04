@@ -1,7 +1,9 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../Database/dbConnection');
+const Invoice = require('./Invoice');
+const Report = require('./Report');
 
-const Doctor = sequelize.define('Doctor', {
+const Patient = sequelize.define('Patient', {
   name: {
     type: DataTypes.STRING,
     allowNull: false
@@ -11,23 +13,24 @@ const Doctor = sequelize.define('Doctor', {
     allowNull:false,
     unique:true
   },
-  field: {
-    type: DataTypes.STRING,
-  },
-  degree: {
-    type: DataTypes.TEXT,
-  },
-  address: {
-    type: DataTypes.TEXT,
-  },
   age: {
     type: DataTypes.INTEGER,
   },
+  weight: {
+    type: DataTypes.INTEGER, //in kgs
+  },
   email: {
     type: DataTypes.STRING,
+    validate:{
+        isEmail:true
+    }
   },
 }, {
   // Other model options go here
 });
 
-module.exports=Doctor
+Patient.hasMany(Report);
+Patient.hasMany(Invoice);
+Report.belongsTo(Patient);
+
+module.exports=Patient

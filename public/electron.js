@@ -1,17 +1,17 @@
 const { app, BrowserWindow, ipcMain } = require('electron')
 const path = require('path')
 const isDev = require('electron-is-dev');
-const sequelize=require('./src/Database/dbConnection')
-
-let preloadScriptPath;
-if (isDev) {
-    preloadScriptPath = path.join(__dirname, 'preload.js')
-} else {
-    preloadScriptPath = path.join(app.getAppPath(), "preload.js")
-}
+const sequelize = require('./src/Database/dbConnection')
+const databaseService=require('./src/Services/databaseService')
 
 let win;
 function createWindow() {
+    let preloadScriptPath;
+    if (isDev) {
+        preloadScriptPath = path.join(__dirname, 'preload.js')
+    } else {
+        preloadScriptPath = path.join(app.getAppPath(), "preload.js")
+    }
     win = new BrowserWindow({
         width: 1200,
         height: 800,
@@ -23,7 +23,6 @@ function createWindow() {
             preload: preloadScriptPath
         }
     })
-
     if (isDev) {
         win.loadURL('http://localhost:3000');
     } else {
@@ -33,10 +32,10 @@ function createWindow() {
 
 app.whenReady().then(async () => {
     createWindow()
-    try{
+    try {
         await sequelize.authenticate();
         console.log("Successfully connected to database");
-    }catch(err){
+    } catch (err) {
         console.log(err)
     }
     app.on('activate', () => {
@@ -52,15 +51,25 @@ app.on('window-all-closed', () => {
     }
 })
 
+
 ipcMain.on("addTest", (event, data) => {
     console.log(data);
+    databaseService.addTest(data.name, data.cost, data.description)
 });
 
-ipcMain.on('showTests', (event, data) => {
-    console.log('sdf')
-    // db.all('select * from Test', (err, rows) => {
-    //     if (err) console.log(err);
-    //     console.log(rows);
-    //     win.webContents.send("fromMain", rows);
-    // })
+ipcMain.on('getTests', async (event, data) => {
+    const tests=await databaseService.getTests();
+    console.log(tests)
+    win.webContents.send("fromMain", tests);
+});
+
+ipcMain.on('getTestParameters', async (event, testID) => {
+    const testPara=await databaseService.getTestParameters(testID);
+    console.log(testPara)
+    win.webContents.send("fromMain", testPara);
+});
+
+ipcMain.on("addTestParameter", (event, data) => {
+    console.log(data);
+    databaseService.addTestParameter(data.name,data.unit, data.range, data.description, data.testID);
 });

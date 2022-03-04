@@ -8,7 +8,10 @@ const {
 contextBridge.exposeInMainWorld(
     "api", {
         addTest: (data) => ipcRenderer.send('addTest', data),
-        showTests: () => ipcRenderer.send('showTests'),
+        getTests: () => ipcRenderer.send('getTests'),
+        getTest: (testID) => ipcRenderer.send('getTest', testID),
+        getTestParameters: (testID) => ipcRenderer.send('getTestParameters', testID),
+        addTestParameter: (data)=> ipcRenderer.send('addTestParameter', data),
         response: (func) => ipcRenderer.on('fromMain', (event, ...args) => func(...args))
     }
 );
