@@ -2,7 +2,8 @@ const { app, BrowserWindow, ipcMain } = require('electron')
 const path = require('path')
 const isDev = require('electron-is-dev');
 const sequelize = require('./src/Database/dbConnection')
-const databaseService=require('./src/Services/databaseService')
+const databaseService = require('./src/Services/databaseService')
+const pdfService= require('./src/Services/pdfService');
 
 let win;
 function createWindow() {
@@ -30,8 +31,10 @@ function createWindow() {
     }
 }
 
+
 app.whenReady().then(async () => {
     createWindow()
+    pdfService.billPDF(app.getAppPath(), app.getPath('documents'))
     try {
         await sequelize.authenticate();
         console.log("Successfully connected to database");
@@ -58,20 +61,20 @@ ipcMain.on("addTest", (event, data) => {
 });
 
 ipcMain.on('getTests', async (event, data) => {
-    const tests=await databaseService.getTests();
+    const tests = await databaseService.getTests();
     console.log(tests)
     win.webContents.send("fromMain", tests);
 });
 
 ipcMain.on('getTestParameters', async (event, testID) => {
-    const testPara=await databaseService.getTestParameters(testID);
+    const testPara = await databaseService.getTestParameters(testID);
     console.log(testPara)
     win.webContents.send("fromMain", testPara[0].data);
 });
 
 ipcMain.on("addTestParameter", (event, data) => {
     console.log(data);
-    databaseService.addTestParameter(data.name,data.unit, data.range, data.description, data.testID);
+    databaseService.addTestParameter(data.name, data.unit, data.range, data.description, data.testID);
 });
 
 ipcMain.on("generateBill", (event, data) => {

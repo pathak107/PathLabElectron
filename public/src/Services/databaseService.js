@@ -47,6 +47,7 @@ const addTestParameter = async (name, unit, range, description, testID) => {
 }
 
 const generateBill = async (patient_name, patient_contactNumber, total_amount, discount, referred_by, testList) => {
+    //TODO: Implement transactions here.
     const [patient, created] = await Patient.findOrCreate({
         where: { contact_number: patient_contactNumber },
         defaults: {
@@ -54,24 +55,18 @@ const generateBill = async (patient_name, patient_contactNumber, total_amount, d
             contact_number: patient_contactNumber
         }
     });
-
-    console.log(patient.get({plain:true}));
-    console.log(created);
-
     const invoice= await Invoice.create({
         total_amount: total_amount,
         discount: discount,
         final_amount: total_amount - discount,
         PatientId: patient.get({plain:true}).id
     })
-    console.log(invoice.get({plain:true}))
-    
+  
     const reportsList=[]
     testList.forEach((test)=>{
         reportsList.push({ referred_by: referred_by,  InvoiceId: invoice.get({plain:true}).id, TestDetailId: test.id})
     })
-    const reports = await Report.bulkCreate(reportsList);
-    console.log(reports)
+    await Report.bulkCreate(reportsList);
 }
 
 module.exports = {
