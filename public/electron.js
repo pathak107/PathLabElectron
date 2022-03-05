@@ -66,10 +66,15 @@ ipcMain.on('getTests', async (event, data) => {
 ipcMain.on('getTestParameters', async (event, testID) => {
     const testPara=await databaseService.getTestParameters(testID);
     console.log(testPara)
-    win.webContents.send("fromMain", testPara);
+    win.webContents.send("fromMain", testPara[0].data);
 });
 
 ipcMain.on("addTestParameter", (event, data) => {
     console.log(data);
     databaseService.addTestParameter(data.name,data.unit, data.range, data.description, data.testID);
+});
+
+ipcMain.on("generateBill", (event, data) => {
+    console.log(data);
+    databaseService.generateBill(data.patient_name, data.patient_contactNumber, data.total_amount, data.discount, data.referred_by, data.testList)
 });

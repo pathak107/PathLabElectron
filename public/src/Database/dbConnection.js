@@ -19,7 +19,7 @@ const sequelize = new Sequelize({
 
 if (isDev) {
     (async () => {
-        await sequelize.sync({ alter: true });
+        await sequelize.sync({alter:true});
         // Code here
     })();
 }

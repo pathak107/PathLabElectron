@@ -1,6 +1,5 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../Database/dbConnection');
-const Invoice= require('./Invoice')
 
 const Report = sequelize.define('Report', {
     referred_by: {
@@ -17,6 +16,5 @@ const Report = sequelize.define('Report', {
     // Other model options go here
 });
 
-Report.belongsTo(Invoice);
 
 module.exports = Report

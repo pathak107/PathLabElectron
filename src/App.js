@@ -3,7 +3,7 @@ import Doctors from "./Pages/Doctors/Doctors";
 import Home from "./Pages/Home";
 import { Route, Routes } from "react-router-dom"
 import NewDoctor from "./Pages/Doctors/NewDoctor";
-import { Box, Flex, HStack, VStack } from "@chakra-ui/react";
+import { Box, Flex} from "@chakra-ui/react";
 import NavigationPane from "./Components/NavigationPane";
 import TestDetails from "./Pages/Tests/TestDetails";
 import NewTest from "./Pages/Tests/NewTest";

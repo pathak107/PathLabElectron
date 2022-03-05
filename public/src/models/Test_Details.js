@@ -1,6 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../Database/dbConnection');
 const TestParameter= require('./Test_Parameter');
+const Report= require('./Report');
 
 const TestDetails = sequelize.define('Test_Details', {
   name: {
@@ -23,4 +24,6 @@ TestDetails.hasMany(TestParameter, {
 });
 TestParameter.belongsTo(TestDetails);
 
+TestDetails.hasMany(Report);
+Report.belongsTo(TestDetails);
 module.exports=TestDetails

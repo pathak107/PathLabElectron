@@ -1,4 +1,4 @@
-import { Container, Heading, Text, VStack } from "@chakra-ui/react";
+import { Heading, Text, VStack } from "@chakra-ui/react";
 import {
     Table,
     Thead,

@@ -20,8 +20,7 @@ const Invoice = sequelize.define('Invoice', {
 }, {
   // Other model options go here
 });
-
-Invoice.belongsTo(Patient)
 Invoice.hasMany(Report);
+Report.belongsTo(Invoice);
 
 module.exports=Invoice

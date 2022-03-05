@@ -1,4 +1,4 @@
-import { Box, Button, VStack } from '@chakra-ui/react'
+import { Box, VStack } from '@chakra-ui/react'
 import { useNavigate } from 'react-router-dom';
 import {
     Table,

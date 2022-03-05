@@ -13,22 +13,33 @@ import {
     Text,
     Box,
 } from '@chakra-ui/react'
-import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useContext, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { AlertContext } from '../../Context/AlertContext';
 
 function TestDetails() {
+    const diaCtx= useContext(AlertContext);
     const [tests, setTests] = useState([])
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
     const getTests = (TestDetails) => {
         setIsLoading(false);
-        setTests(TestDetails)
+        if(TestDetails.error){
+            diaCtx.actions.showDialog("Error", `Oops! looks like some unexpected error occured. Please try again. \n ${TestDetails.error}`);
+        }
+        setTests(TestDetails.data)
     }
 
     useEffect(() => {
-        setIsLoading(true);
-        window.api.getTests();
-        window.api.response(getTests)
+        let isApiSubscribed = true;
+        if (isApiSubscribed) {
+            setIsLoading(true);
+            window.api.getTests();
+            window.api.response(getTests)
+        }
+        return () => {
+            isApiSubscribed = false
+        }
     }, [])
     return (
         <>
@@ -50,7 +61,7 @@ function TestDetails() {
                                     console.log(test)
                                     return <Tr key={test.id}>
                                         <Td color='teal'>
-                                            <Box as='button' onClick={() => navigate(`/tests/editTest/${test.id}`, { state: test })}>{test.name}</Box>  
+                                            <Box as='button' onClick={() => navigate(`/tests/editTest/${test.id}`, { state: test })}>{test.name}</Box>
                                         </Td>
                                         <Td isNumeric>{test.cost}</Td>
                                         <Td>{test.description}</Td>

@@ -1,8 +1,7 @@
 import {
-    HStack,
     Input,
     Button,
-    Heading, VStack, InputGroup, InputLeftElement, Select, Container, Box, Flex
+    Heading, VStack, InputGroup, InputLeftElement, Select, Box
 } from '@chakra-ui/react'
 import {
     NumberInput,
@@ -18,7 +17,7 @@ import { useContext, useState } from 'react'
 import { BillContext } from '../Context/BillContextProvider'
 const NewInvoice = () => {
     const billCtx = useContext(BillContext)
-    const [singleTestID, setSingleTestID] = useState(null);
+    const [singleTestID, setSingleTestID] = useState('');
     return (
         <>
             <Box borderWidth='1px' borderRadius='lg' width='lg' p={5}>

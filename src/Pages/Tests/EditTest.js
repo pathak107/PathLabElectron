@@ -24,12 +24,14 @@ import {
 
 } from "@chakra-ui/react";
 import { useContext, useEffect, useState } from 'react'
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import AddTestParameterModal from "../../Components/PopOvers/AddTestParameter";
+import { AlertContext } from "../../Context/AlertContext";
 import { TestParaContext } from "../../Context/TestParaContext";
 
 function EditTest() {
     const ctx = useContext(TestParaContext);
+    const diaCtx= useContext(AlertContext)
     const params = useParams();
     const location = useLocation()
     const [testData, setTestData] = useState(location.state);
@@ -37,13 +39,25 @@ function EditTest() {
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
-        setIsLoading(true);
-        window.api.getTestParameters(params.testID)
-        window.api.response((tp) => setTestParameters(tp))
-        setIsLoading(false)
-    }, [params.testID])
+        let isApiSubscribed = true;
+        if (isApiSubscribed) {
+            setIsLoading(true);
+            window.api.getTestParameters(params.testID)
+            window.api.response((tp) => {
+                if(tp.error){
+                    diaCtx.actions.showDialog("Error", `Oops! looks like some unexpected error occured. Please try again. \n ${tp.error}`);
+                }
+                setTestParameters(tp.data)
+            })
+            setIsLoading(false)
+        }
+        return () => {
+            isApiSubscribed = false
+        }
+    },
+        [params.testID, ctx.state.isOpen])
 
-    const submitHandler=()=>{
+    const submitHandler = () => {
 
     }
     const addTestParaHandler = () => {
@@ -53,7 +67,7 @@ function EditTest() {
     return (
         <>
             <Container maxW='container.lg'>
-                <AddTestParameterModal/>
+                <AddTestParameterModal />
                 <Heading>Edit {testData.name}</Heading>
                 <Stack spacing={3}>
                     <FormControl>
@@ -113,18 +127,17 @@ function EditTest() {
                                 </Thead>
                                 <Tbody>
                                     {TestParameters.map((testPara) => {
-                                        return <Tr>
-                                            <Td>{testPara.name}</Td>
-                                            <Td>{testPara.unit}</Td>
-                                            <Td>{testPara.range}</Td>
-                                            <Td>{testPara.description}</Td>
+                                        return <Tr key={testPara.id}>
+                                            <Td >{testPara.name}</Td>
+                                            <Td >{testPara.unit}</Td>
+                                            <Td >{testPara.range}</Td>
+                                            <Td >{testPara.description}</Td>
                                         </Tr>
                                     })}
 
                                 </Tbody>
                             </Table>
                     }
-                    
                 </Stack>
             </Container>
         </>

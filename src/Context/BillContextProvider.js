@@ -1,7 +1,9 @@
-import React, { createContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { AlertContext } from "./AlertContext";
 const BillContext = createContext();
 
 const BillContextProvider = ({ children }) => {
+    const ctx = useContext(AlertContext);
     const [name, setName] = useState('');
     const [contactNumber, setContactNumber] = useState('');
     const [discount, setDiscount] = useState(0);
@@ -15,7 +17,12 @@ const BillContextProvider = ({ children }) => {
     useEffect(()=>{
         setIsLoading(true);
         window.api.getTests();
-        window.api.response((testList)=>setAllTests(testList));
+        window.api.response((testList)=>{
+            if(testList.error){
+                ctx.actions.showDialog("Error", `Oops! looks like some unexpected error occured. Please try again. \n ${testList.error}`);
+            }
+            setAllTests(testList.data)
+        });
         setIsLoading(false);
     },[])
 
@@ -51,6 +58,14 @@ const BillContextProvider = ({ children }) => {
         console.log(discount);
         console.log(tests);
         console.log(doctor);
+        window.api.generateBill({
+            patient_name:name,
+            patient_contactNumber:contactNumber,
+            discount,
+            testList:tests,
+            total_amount:totalAmt,
+            referred_by: doctor
+        })
     }
 
     const value = {
