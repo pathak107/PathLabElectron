@@ -19,4 +19,5 @@ const TestParameter = sequelize.define('Test_Parameter', {
     // Other model options go here
 });
 
+
 module.exports = TestParameter

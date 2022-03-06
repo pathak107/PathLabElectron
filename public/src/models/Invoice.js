@@ -20,7 +20,9 @@ const Invoice = sequelize.define('Invoice', {
 }, {
   // Other model options go here
 });
-Invoice.hasMany(Report);
+Invoice.hasMany(Report,{
+  onDelete:'CASCADE'
+});
 Report.belongsTo(Invoice);
 
 module.exports=Invoice

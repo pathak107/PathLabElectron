@@ -24,6 +24,8 @@ TestDetails.hasMany(TestParameter, {
 });
 TestParameter.belongsTo(TestDetails);
 
-TestDetails.hasMany(Report);
+TestDetails.hasMany(Report,{
+  onDelete:'CASCADE'
+});
 Report.belongsTo(TestDetails);
 module.exports=TestDetails

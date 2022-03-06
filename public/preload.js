@@ -13,6 +13,9 @@ contextBridge.exposeInMainWorld(
         getTestParameters: (testID) => ipcRenderer.send('getTestParameters', testID),
         addTestParameter: (data)=> ipcRenderer.send('addTestParameter', data),
         generateBill: (data)=> ipcRenderer.send('generateBill', data),
+        getReports:()=>ipcRenderer.send('getReports'),
+        getReportParameters:(reportID)=>ipcRenderer.send('getReportParameters', reportID),
+        editReport: (reportData)=> ipcRenderer.send('editReport', reportData),
         response: (func) => ipcRenderer.on('fromMain', (event, ...args) => func(...args))
     }
 );

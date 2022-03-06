@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain } = require('electron')
 const path = require('path')
 const isDev = require('electron-is-dev');
+const fs= require('fs')
 const sequelize = require('./src/Database/dbConnection')
 const databaseService = require('./src/Services/databaseService')
 const pdfService= require('./src/Services/pdfService');
@@ -31,10 +32,29 @@ function createWindow() {
     }
 }
 
+// Storage Directory
+let billsPath;
+let reportsPath;
+let currDir;
+const createStorageDirectory=()=>{
+    const dir= path.join(app.getPath('documents'),'PathLabLite')
+    if (!fs.existsSync(dir)){
+        fs.mkdirSync(dir);
+        fs.mkdirSync(path.join(dir,'Bills'));
+        fs.mkdirSync(path.join(dir,'Reports')); 
+    }
+    billsPath=path.join(dir,'Bills')
+    reportsPath=path.join(dir,'Reports')
+    if(isDev){
+        currDir=__dirname
+    }else{
+        currDir=app.getAppPath();
+    }
+}
+
 
 app.whenReady().then(async () => {
     createWindow()
-    pdfService.billPDF(app.getAppPath(), app.getPath('documents'))
     try {
         await sequelize.authenticate();
         console.log("Successfully connected to database");
@@ -46,6 +66,7 @@ app.whenReady().then(async () => {
             createWindow()
         }
     })
+    createStorageDirectory()
 })
 
 app.on('window-all-closed', () => {
@@ -55,6 +76,8 @@ app.on('window-all-closed', () => {
 })
 
 
+
+// API interaction
 ipcMain.on("addTest", (event, data) => {
     console.log(data);
     databaseService.addTest(data.name, data.cost, data.description)
@@ -69,7 +92,7 @@ ipcMain.on('getTests', async (event, data) => {
 ipcMain.on('getTestParameters', async (event, testID) => {
     const testPara = await databaseService.getTestParameters(testID);
     console.log(testPara)
-    win.webContents.send("fromMain", testPara[0].data);
+    win.webContents.send("fromMain", testPara);
 });
 
 ipcMain.on("addTestParameter", (event, data) => {
@@ -80,4 +103,34 @@ ipcMain.on("addTestParameter", (event, data) => {
 ipcMain.on("generateBill", (event, data) => {
     console.log(data);
     databaseService.generateBill(data.patient_name, data.patient_contactNumber, data.total_amount, data.discount, data.referred_by, data.testList)
+    //TODO: implement proper logic
+    pdfService.billPDF( billsPath, currDir)
 });
+
+ipcMain.on('getReports', async (event, data) => {
+    const reports = await databaseService.getReports();
+    console.log(reports)
+    win.webContents.send("fromMain", reports);
+});
+
+ipcMain.on('getReportParameters', async (event, reportID) => {
+    const reportParas = await databaseService.getReportParameters(reportID);
+    console.log(reportParas)
+    win.webContents.send("fromMain", reportParas);
+})
+
+ipcMain.on('editReport', async (event,data)=>{
+    const reportData= await databaseService.editReport(data)
+    console.log(reportData)
+    if(reportData.status===databaseService.status.FAILURE){
+        //TODO: Send an error response to user
+    }else{
+        const reportPdf=await pdfService.reportPDF(reportData.data, reportsPath, currDir)
+        if(reportPdf.status==="SUCCESS"){
+            databaseService.saveReportPdfFileName(reportPdf.fileName, reportData.data.report_id)
+        }else{
+            //TODO: Inform user pdf could not be generated
+        }
+    }
+})
+
