@@ -18,13 +18,15 @@ import { useNavigate } from 'react-router-dom';
 import { AlertContext } from '../../Context/AlertContext';
 
 function TestDetails() {
-    const diaCtx= useContext(AlertContext);
+    const diaCtx = useContext(AlertContext);
     const [tests, setTests] = useState([])
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
-    const getTests = (TestDetails) => {
+    const getTests = async () => {
+        setIsLoading(true);
+        const TestDetails = await window.api.getTests();
         setIsLoading(false);
-        if(TestDetails.error){
+        if (TestDetails.error) {
             diaCtx.actions.showDialog("Error", `Oops! looks like some unexpected error occured. Please try again. \n ${TestDetails.error}`);
         }
         setTests(TestDetails.data)
@@ -33,9 +35,7 @@ function TestDetails() {
     useEffect(() => {
         let isApiSubscribed = true;
         if (isApiSubscribed) {
-            setIsLoading(true);
-            window.api.getTests();
-            window.api.response(getTests)
+            getTests()
         }
         return () => {
             isApiSubscribed = false

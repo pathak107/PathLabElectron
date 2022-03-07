@@ -7,15 +7,14 @@ const {
 // the ipcRenderer without exposing the entire object
 contextBridge.exposeInMainWorld(
     "api", {
-        addTest: (data) => ipcRenderer.send('addTest', data),
-        getTests: () => ipcRenderer.send('getTests'),
-        getTest: (testID) => ipcRenderer.send('getTest', testID),
-        getTestParameters: (testID) => ipcRenderer.send('getTestParameters', testID),
-        addTestParameter: (data)=> ipcRenderer.send('addTestParameter', data),
-        generateBill: (data)=> ipcRenderer.send('generateBill', data),
-        getReports:()=>ipcRenderer.send('getReports'),
-        getReportParameters:(reportID)=>ipcRenderer.send('getReportParameters', reportID),
-        editReport: (reportData)=> ipcRenderer.send('editReport', reportData),
-        response: (func) => ipcRenderer.on('fromMain', (event, ...args) => func(...args))
+        addTest: (data) => ipcRenderer.invoke('addTest', data),
+        getTests: () => ipcRenderer.invoke('getTests'),
+        getTest: (testID) => ipcRenderer.invoke('getTest', testID),
+        getTestParameters: (testID) => ipcRenderer.invoke('getTestParameters', testID),
+        addTestParameter: (data)=> ipcRenderer.invoke('addTestParameter', data),
+        generateBill: (data)=> ipcRenderer.invoke('generateBill', data),
+        getReports:()=>ipcRenderer.invoke('getReports'),
+        getReportParameters:(reportID)=>ipcRenderer.invoke('getReportParameters', reportID),
+        editReport: (reportData)=> ipcRenderer.invoke('editReport', reportData),
     }
 );

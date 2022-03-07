@@ -8,7 +8,8 @@ import {
     ModalCloseButton,
     Stack,
     Input,
-    Button
+    Button,
+    Spinner
   } from '@chakra-ui/react'
 import { useContext} from 'react';
 import { TestParaContext } from '../../Context/TestParaContext';
@@ -32,7 +33,7 @@ function AddTestParameterModal() {
                 </Stack>
             </ModalBody>
             <ModalFooter>
-            <Button variant='ghost' onClick={ctx.actions.addTestParameter}>Save</Button>
+            {ctx.state.isLoading? <Spinner />:<Button variant='ghost' onClick={ctx.actions.addTestParameter}>Save</Button>}
             <Button colorScheme='blue' mr={3} onClick={()=>ctx.actions.setIsOpen(false)}>
                 Close
             </Button>

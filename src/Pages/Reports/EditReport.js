@@ -12,7 +12,8 @@ import {
     Td,
     TableCaption,
     Progress,
-    Text
+    Text,
+    Spinner
 
 } from "@chakra-ui/react";
 import { useContext, useEffect, useState } from 'react'
@@ -35,42 +36,43 @@ function EditReport() {
     });
     const [isLoading, setIsLoading] = useState(false);
 
+    const getReportParameters = async () => {
+        setIsLoading(true);
+        const rp = await window.api.getReportParameters(params.reportID);
+        if (rp.error || !rp.data) {
+            diaCtx.actions.showDialog("Error", `Oops! looks like some unexpected error occured. Please try again. \n ${rp.error}`);
+        } else {
+            const reportValues = []
+            rp.data.Test_Parameters.forEach((tp) => {
+                reportValues.push({
+                    para_id: tp.id,
+                    name: tp.name,
+                    value: tp.ReportValue.value,
+                    unit: tp.unit,
+                    range: tp.range,
+                    description: tp.description
+                })
+            })
+            setReportData({
+                report_id: rp.data.id,
+                test_name: rp.data.Test_Detail.name,
+                patient_name: rp.data.Invoice.Patient.name,
+                Patient_contact_number: rp.data.Invoice.Patient.contact_number,
+                date: rp.data.updatedAt.toString(),
+                report_PDF: rp.data.report_file_path,
+                status: rp.data.completed,
+                referred_by: rp.data.referred_by,
+                report_values: reportValues
+            })
+
+        }
+        setIsLoading(false)
+    }
+
     useEffect(() => {
         let isApiSubscribed = true;
         if (isApiSubscribed) {
-            setIsLoading(true);
-            window.api.getReportParameters(params.reportID);
-            window.api.response((rp) => {
-                if (rp.error || !rp.data) {
-                    diaCtx.actions.showDialog("Error", `Oops! looks like some unexpected error occured. Please try again. \n ${rp.error}`);
-                } else {
-                    const reportValues=[]
-                    rp.data.Test_Parameters.forEach((tp)=>{
-                        reportValues.push({
-                            para_id:tp.id,
-                            name:tp.name,
-                            value:tp.ReportValue.value,
-                            unit:tp.unit,
-                            range: tp.range,
-                            description:tp.description
-                        })
-                    })
-                    setReportData({
-                        report_id: rp.data.id,
-                        test_name: rp.data.Test_Detail.name,
-                        patient_name: rp.data.Invoice.Patient.name,
-                        Patient_contact_number: rp.data.Invoice.Patient.contact_number,
-                        date: rp.data.updatedAt.toString(),
-                        report_PDF: rp.data.report_file_path,
-                        status: rp.data.completed,
-                        referred_by: rp.data.referred_by,
-                        report_values: reportValues
-                    })
-
-                }
-
-            })
-            setIsLoading(false)
+            getReportParameters()
         }
         return () => {
             isApiSubscribed = false
@@ -78,8 +80,15 @@ function EditReport() {
     },
         [params.reportID])
 
-    const submitHandler = () => {
-        window.api.editReport(reportData)
+    const submitHandler = async () => {
+        setIsLoading(true);
+        const created = await window.api.editReport(reportData)
+        setIsLoading(false);
+        if (created.status === "FAILURE") {
+            diaCtx.actions.showDialog("Error", `Oops! looks like some unexpected error occured in updating the report. Please try again.`);
+        } else {
+            diaCtx.actions.showDialog("Done", `Successfully updated report.`);
+        }
     }
 
     return (
@@ -88,21 +97,21 @@ function EditReport() {
                 <Heading>Edit Report</Heading>
                 <Stack spacing={3}>
                     {!reportData ?
-                        <Text>Some error occured.</Text> :
-                        <Stack spacing={3}>
-                            <Text>Report ID: #{reportData.report_id.toString()}</Text>
-                            <Text>Test Name: {reportData.test_name}</Text>
-                            <Text>Patient: {reportData.patient_name}</Text>
-                            <Text>Patient Number: {reportData.Patient_contact_number}</Text>
-                            <Text>Date: {reportData.date}</Text>
-                            <Text>Report PDF: {reportData.report_PDF ? reportData.report_PDF : "No report PDF generated"}</Text>
-                            <Text>Status: {reportData.status ? "Done" : "Pending"}</Text>
-                            <Text>Referred By: {reportData.referred_by}</Text>
-                        </Stack>
+                        <Text>Nothing to show here. Maybe some error occured.</Text> :
+                        <>
 
-                    }
-                    {isLoading ? <Progress isIndeterminate size='xs' /> :
-                        reportData.report_values.length === 0 ? <Text>Sorry this report has no test parameters</Text> :
+                            <Stack spacing={3}>
+                                <Text>Report ID: #{reportData.report_id.toString()}</Text>
+                                <Text>Test Name: {reportData.test_name}</Text>
+                                <Text>Patient: {reportData.patient_name}</Text>
+                                <Text>Patient Number: {reportData.Patient_contact_number}</Text>
+                                <Text>Date: {reportData.date}</Text>
+                                <Text>Report PDF: {reportData.report_PDF ? reportData.report_PDF : "No report PDF generated"}</Text>
+                                <Text>Status: {reportData.status ? "Done" : "Pending"}</Text>
+                                <Text>Referred By: {reportData.referred_by}</Text>
+                            </Stack>
+
+
                             <Table variant='simple'>
                                 <TableCaption>List of all the Test Parameters</TableCaption>
                                 <Thead>
@@ -122,16 +131,16 @@ function EditReport() {
                                                 <Input
                                                     placeholder='Value'
                                                     value={reportValue.value}
-                                                    onChange={(e) =>{
-                                                        const newReportVals=[]
-                                                        const newReportData={...reportData}
-                                                        reportData.report_values.forEach((rv)=>{
-                                                            if(rv.para_id===reportValue.para_id){
-                                                                rv.value=e.target.value
+                                                    onChange={(e) => {
+                                                        const newReportVals = []
+                                                        const newReportData = { ...reportData }
+                                                        reportData.report_values.forEach((rv) => {
+                                                            if (rv.para_id === reportValue.para_id) {
+                                                                rv.value = e.target.value
                                                             }
                                                             newReportVals.push(rv)
                                                         })
-                                                        newReportData.report_values=newReportVals
+                                                        newReportData.report_values = newReportVals
                                                         setReportData(newReportData)
                                                     }}
                                                 />
@@ -144,10 +153,12 @@ function EditReport() {
 
                                 </Tbody>
                             </Table>
-
+                        </>
                     }
-                    <Button colorScheme='gray' onClick={() => submitHandler()}>Submit</Button>
+
+                    {isLoading ? <Spinner /> : <Button colorScheme='gray' onClick={() => submitHandler()}>Submit</Button>}
                 </Stack>
+
             </Container>
         </>
     );

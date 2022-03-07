@@ -12,23 +12,33 @@ import {
     FormControl,
     FormLabel,
     Heading,
+    Spinner,
 } from "@chakra-ui/react";
-import {useState} from 'react'
+import {useContext, useState} from 'react'
 import { useNavigate } from "react-router-dom";
+import { AlertContext } from "../../Context/AlertContext";
 
 function NewTest() {
     const navigate=useNavigate();
+    const diaCtx= useContext(AlertContext)
     const [name, setName]=useState('');
     const [cost, setCost]=useState(0);
     const [desc, setDesc]=useState('');
+    const [isLoading, setIsLoading]= useState(false);
 
-    const submitHandler=()=>{
-        window.api.addTest({
+    const submitHandler=async()=>{
+        setIsLoading(true);
+        const created=await window.api.addTest({
             name:name,
             cost:cost,
             description:desc
         })
-        navigate(-1);
+        setIsLoading(false)
+        if(created.status==="FAILURE"){
+            diaCtx.actions.showDialog("Error", `Oops! looks like some unexpected error occured in creating test. Please try again.`);
+        }else{
+            navigate(-1);
+        }
     }
     return (
         <>
@@ -59,7 +69,7 @@ function NewTest() {
                         <FormLabel htmlFor="description">Description</FormLabel>
                         <Textarea placeholder='Description' value={desc} onChange={(e)=>setDesc(e.target.value)} />
                     </FormControl>
-                    <Button colorScheme='gray' onClick={()=>submitHandler()}>Submit</Button>
+                    {isLoading? <Spinner/> :<Button colorScheme='gray' onClick={()=>submitHandler()}>Submit</Button>}
                 </Stack>
             </Container>
         </>

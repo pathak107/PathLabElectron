@@ -28,23 +28,25 @@ function Reports() {
             // send a request to change completed to false
         } else if (!completed && !report_file_path) {
             diaCtx.actions.showDialog("Fill the Report", "Sorry, can't change status to done because you haven't filled the report yet. Fill the report to generate a pdf and then try again.")
-        } else{
+        } else {
             //send a request to change completed to true
         }
+    }
+
+    const getReportList = async () => {
+        setIsLoading(true);
+        const reportList = await window.api.getReports();
+        setIsLoading(false);
+        if (reportList.error) {
+            diaCtx.actions.showDialog("Error", `Oops! looks like some unexpected error occured. Please try again. \n ${reportList.error}`);
+        }
+        setReports(reportList.data)
     }
 
     useEffect(() => {
         let isApiSubscribed = true;
         if (isApiSubscribed) {
-            setIsLoading(true);
-            window.api.getReports();
-            window.api.response((reportList) => {
-                setIsLoading(false);
-                if (reportList.error) {
-                    diaCtx.actions.showDialog("Error", `Oops! looks like some unexpected error occured. Please try again. \n ${reportList.error}`);
-                }
-                setReports(reportList.data)
-            })
+            getReportList()
         }
         return () => {
             isApiSubscribed = false
@@ -78,7 +80,7 @@ function Reports() {
                                         <Td>{report.Test_Detail.name}</Td>
                                         <Td>{report.Invoice.Patient.name}</Td>
                                         <Td>
-                                            <Badge ml='1' fontSize='1em' colorScheme={report.completed ? 'green' : 'red'} as='button' onClick={()=> toggleReportStatus(report.completed, report.report_file_path)}>
+                                            <Badge ml='1' fontSize='1em' colorScheme={report.completed ? 'green' : 'red'} as='button' onClick={() => toggleReportStatus(report.completed, report.report_file_path)}>
                                                 {report.completed ? 'Done' : 'Pending'}
                                             </Badge>
                                         </Td>

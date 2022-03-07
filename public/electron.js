@@ -30,6 +30,7 @@ function createWindow() {
     } else {
         win.loadFile(path.join(app.getAppPath(), 'index.html'));
     }
+
 }
 
 // Storage Directory
@@ -50,6 +51,8 @@ const createStorageDirectory=()=>{
     }else{
         currDir=app.getAppPath();
     }
+
+    pdfService.demo(reportsPath)
 }
 
 
@@ -78,58 +81,64 @@ app.on('window-all-closed', () => {
 
 
 // API interaction
-ipcMain.on("addTest", (event, data) => {
+ipcMain.handle("addTest", async (event, data) => {
     console.log(data);
-    databaseService.addTest(data.name, data.cost, data.description)
+    return await databaseService.addTest(data.name, data.cost, data.description)
 });
 
-ipcMain.on('getTests', async (event, data) => {
+ipcMain.handle('getTests', async (event, data) => {
     const tests = await databaseService.getTests();
     console.log(tests)
-    win.webContents.send("fromMain", tests);
+    return tests
 });
 
-ipcMain.on('getTestParameters', async (event, testID) => {
+ipcMain.handle('getTestParameters', async (event, testID) => {
     const testPara = await databaseService.getTestParameters(testID);
     console.log(testPara)
-    win.webContents.send("fromMain", testPara);
+    return testPara
 });
 
-ipcMain.on("addTestParameter", (event, data) => {
+ipcMain.handle("addTestParameter", async (event, data) => {
     console.log(data);
-    databaseService.addTestParameter(data.name, data.unit, data.range, data.description, data.testID);
+    return await databaseService.addTestParameter(data.name, data.unit, data.range, data.description, data.testID);
 });
 
-ipcMain.on("generateBill", (event, data) => {
+ipcMain.handle("generateBill", (event, data) => {
     console.log(data);
     databaseService.generateBill(data.patient_name, data.patient_contactNumber, data.total_amount, data.discount, data.referred_by, data.testList)
     //TODO: implement proper logic
     pdfService.billPDF( billsPath, currDir)
 });
 
-ipcMain.on('getReports', async (event, data) => {
+ipcMain.handle('getReports', async (event, data) => {
     const reports = await databaseService.getReports();
     console.log(reports)
-    win.webContents.send("fromMain", reports);
+    return reports
 });
 
-ipcMain.on('getReportParameters', async (event, reportID) => {
+ipcMain.handle('getReportParameters', async (event, reportID) => {
     const reportParas = await databaseService.getReportParameters(reportID);
     console.log(reportParas)
-    win.webContents.send("fromMain", reportParas);
+    return reportParas
 })
 
-ipcMain.on('editReport', async (event,data)=>{
+ipcMain.handle('editReport', async (event,data)=>{
     const reportData= await databaseService.editReport(data)
     console.log(reportData)
     if(reportData.status===databaseService.status.FAILURE){
-        //TODO: Send an error response to user
+        //Send an error response to user
+        return reportData
     }else{
         const reportPdf=await pdfService.reportPDF(reportData.data, reportsPath, currDir)
         if(reportPdf.status==="SUCCESS"){
-            databaseService.saveReportPdfFileName(reportPdf.fileName, reportData.data.report_id)
+            return await databaseService.saveReportPdfFileName(reportPdf.fileName, reportData.data.report_id)
         }else{
             //TODO: Inform user pdf could not be generated
+            return {
+                status:"FAILURE",
+                error:"Pdf could not be generated",
+                data: null
+            }
         }
     }
 })

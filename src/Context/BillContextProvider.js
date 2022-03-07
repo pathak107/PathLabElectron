@@ -15,15 +15,16 @@ const BillContextProvider = ({ children }) => {
     const [allTests, setAllTests]=useState([]);
 
     useEffect(()=>{
-        setIsLoading(true);
-        window.api.getTests();
-        window.api.response((testList)=>{
+        const getTests= async ()=>{
+            setIsLoading(true);
+            const testList= await window.api.getTests();
             if(testList.error){
                 ctx.actions.showDialog("Error", `Oops! looks like some unexpected error occured. Please try again. \n ${testList.error}`);
             }
             setAllTests(testList.data)
-        });
-        setIsLoading(false);
+            setIsLoading(false);
+        }
+        getTests()
     },[])
 
 

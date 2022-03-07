@@ -31,31 +31,33 @@ import { TestParaContext } from "../../Context/TestParaContext";
 
 function EditTest() {
     const ctx = useContext(TestParaContext);
-    const diaCtx= useContext(AlertContext)
+    const diaCtx = useContext(AlertContext)
     const params = useParams();
     const location = useLocation()
     const [testData, setTestData] = useState(location.state);
     const [TestParameters, setTestParameters] = useState([])
     const [isLoading, setIsLoading] = useState(false);
 
+    const getTestParameters = async () => {
+        setIsLoading(true);
+        const tp = await window.api.getTestParameters(params.testID)
+        if (tp.error) {
+            diaCtx.actions.showDialog("Error", `Oops! looks like some unexpected error occured. Please try again. \n ${tp.error}`);
+        }
+        setTestParameters(tp.data)
+        setIsLoading(false)
+    }
+
     useEffect(() => {
         let isApiSubscribed = true;
         if (isApiSubscribed) {
-            setIsLoading(true);
-            window.api.getTestParameters(params.testID)
-            window.api.response((tp) => {
-                if(tp.error){
-                    diaCtx.actions.showDialog("Error", `Oops! looks like some unexpected error occured. Please try again. \n ${tp.error}`);
-                }
-                setTestParameters(tp.data)
-            })
-            setIsLoading(false)
+            getTestParameters()
         }
         return () => {
             isApiSubscribed = false
         }
     },
-        [params.testID, ctx.state.isOpen])
+        [ctx.state.isLoading])
 
     const submitHandler = () => {
 

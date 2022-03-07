@@ -33,7 +33,13 @@ const response = (status, error, data) => {
 }
 
 const addTest = async (name, cost, description) => {
-    await TestDetails.create({ name, cost, description });
+    try {
+        await TestDetails.create({ name, cost, description });
+        return response(status.SUCCESS, null, null)
+    } catch (error) {
+        return response(status.FAILURE, error, null)
+    }
+    
 }
 
 const getTests = async () => {
@@ -55,7 +61,13 @@ const getTestParameters = async (testID) => {
 }
 
 const addTestParameter = async (name, unit, range, description, testID) => {
-    await TestParameter.create({ name, unit, range, description, TestDetailId: testID })
+    try {
+        await TestParameter.create({ name, unit, range, description, TestDetailId: testID })
+        return response(status.SUCCESS, null, null)
+    } catch (error) {
+        return response(status.FAILURE, error, null)
+    }
+    
 }
 
 const generateBill = async (patient_name, patient_contactNumber, total_amount, discount, referred_by, testList) => {
@@ -172,11 +184,17 @@ const editReport = async (data) => {
 }
 
 const saveReportPdfFileName=async (fileName, reportID)=>{
-    await Report.update({report_file_path: fileName},{
-        where:{
-            id:reportID
-        }
-    })
+    try {
+        await Report.update({report_file_path: fileName},{
+            where:{
+                id:reportID
+            }
+        })
+        return response(status.SUCCESS, null, null)
+    } catch (error) {
+        return response(status.FAILURE, error, null)
+    }
+    
 }
 
 module.exports = {

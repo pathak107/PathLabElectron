@@ -1,24 +1,22 @@
 const path = require('path')
-const pdf = require('html-pdf');
 const ejs = require('ejs')
+const fs= require('fs')
+const {BrowserWindow} = require('electron')
 
-const options = { format: 'A4' };
 const billPDF = async (billsPath, currDir) => {
     ejs.renderFile(path.join('../','pdfTemplates','billPdf','billPdf.ejs'), { heading: "New Heading" }, (err, html) => {
-        pdf.create(html, options).toFile(path.join(billsPath, 'bill.pdf'), (err, res)=>{
-            if (err) return console.log(err);
-            console.log(res); // { filename: '/app/businesscard.pdf' }
-        }); 
+
     });
 }
 
 const reportPDF= async (data, reportsPath, currDir)=>{
     const fileName= `reportR${data.report_id}T${data.test_name}`
-    console.log(data)
+    const win = new BrowserWindow({width: 800, height: 600});
     //TODO: Fix the file path issue with ejs
     let html;
     try {
         html=await ejs.renderFile(path.join(__dirname,'../','pdfTemplates','reportPdf','reportPdf.ejs'), { data: "sdfsadsdfsdafsdasadf" }, {async:true});
+        win.loadURL('data:text/html;charset=utf-8,' + encodeURI(html));
     } catch (error) {
         return {
             status:'FAILURE',
@@ -26,21 +24,36 @@ const reportPDF= async (data, reportsPath, currDir)=>{
         }
     }
 
-    await pdf.create(html, options).toFile(path.join(reportsPath,fileName), (err, res)=>{
-        if (err) {
-            return {
-                status:"FAILURE",
-                error:err
-            };
-        }
-        return {
-            status:"SUCCESS",
-            fileName
-        }
-    }); 
+}
+
+const launchPDFWindow= (filepath, filename)=>{
+    const win = new BrowserWindow({width: 1000, height: 800});
+    console.log(path.join(filepath,filename))
+    win.loadURL("file://"+path.join(filepath,filename));
+}
+
+const demo= async(repPath)=>{
+    const html=await ejs.renderFile(path.join(__dirname,'../','pdfTemplates','reportPdf','reportPdf.ejs'), { data: "sdfsadsdfsdafsdasadf" }, {async:true});
+    fs.writeFileSync(path.join(repPath,'tempReport.html'), html)
+    const win = new BrowserWindow({width: 1000, height: 800});
+    await win.loadFile(path.join(repPath,'tempReport.html'))
+    win.webContents.printToPDF({}).then(data => {
+        fs.writeFile(path.join(repPath,'765675.pdf'), data, (error) => {
+          if (error) throw error
+          console.log("Wrote PDF successfully")
+        })
+      }).catch(error => {
+        console.log(`Failed to write PDF to `, error)
+      })
+    win.on('closed',()=>{
+        fs.unlinkSync(path.join(repPath,'tempReport.html'))
+    })
+    
 }
 
 module.exports = {
     billPDF,
-    reportPDF
+    reportPDF,
+    launchPDFWindow,
+    demo
 }
