@@ -1,59 +1,77 @@
 const path = require('path')
 const ejs = require('ejs')
-const fs= require('fs')
-const {BrowserWindow} = require('electron')
+const fs = require('fs')
+const { BrowserWindow } = require('electron')
 
-const billPDF = async (billsPath, currDir) => {
-    ejs.renderFile(path.join('../','pdfTemplates','billPdf','billPdf.ejs'), { heading: "New Heading" }, (err, html) => {
+const TYPE_REPORT="REPORT"
+const TYPE_BILL="BILL"
 
-    });
+const printPDF= async (storagePath, type, data)=>{
+    let fileName="";
+    let templatePath;
+    console.log(data);
+    if(type===TYPE_REPORT){
+        templatePath= path.join(__dirname, '../', 'pdfTemplates', 'reportPdf', 'reportPdf.ejs')
+        fileName = `reportR${data.report_id}T${data.test_name}.pdf`
+    }else if(type===TYPE_BILL){
+        templatePath= path.join(__dirname, '../', 'pdfTemplates', 'billPdf', 'billPdf.ejs')
+        fileName = `BillB${1}T${2}.pdf`
+    }
+
+    try {
+        //Convert ejs to html and fill the data
+        const html = await ejs.renderFile(templatePath, { data: "sdfsadsdfsdafsdasadf" }, { async: true });
+
+        //Write the html into a temporary html file
+        fs.writeFileSync(path.join(storagePath, 'temp.html'), html)
+
+        // Load the temporary html into a new browser window
+        const win = new BrowserWindow({ width: 1000, height: 800 , show:false});
+        await win.loadFile(path.join(storagePath, 'temp.html'))
+
+        // Print the browser window and write the data into a pdf file
+        const data = await win.webContents.printToPDF({})
+        fs.writeFileSync(path.join(storagePath, fileName), data)
+        console.log("Wrote PDF successfully")
+
+        //Once the window closes delete the temporary html file
+        win.close()
+        fs.unlink(path.join(storagePath, 'temp.html'),(err)=>{
+            throw err
+        })
+        launchPDFWindow(storagePath, fileName);
+
+        return {
+            status: 'SUCCESS',
+            error: null,
+            fileName
+        }
+    } catch (error) {
+        console.log(error)
+        return {
+            status: 'FAILURE',
+            error,
+            fileName: null
+        }
+    }
 }
 
-const reportPDF= async (data, reportsPath, currDir)=>{
-    const fileName= `reportR${data.report_id}T${data.test_name}`
-    const win = new BrowserWindow({width: 800, height: 600});
-    //TODO: Fix the file path issue with ejs
-    let html;
+
+const launchPDFWindow = (filepath, filename) => {
     try {
-        html=await ejs.renderFile(path.join(__dirname,'../','pdfTemplates','reportPdf','reportPdf.ejs'), { data: "sdfsadsdfsdafsdasadf" }, {async:true});
-        win.loadURL('data:text/html;charset=utf-8,' + encodeURI(html));
+        const win = new BrowserWindow({ width: 1000, height: 800, webPreferences:{nativeWindowOpen:true} });
+        console.log(path.join(filepath, filename))
+        win.loadURL("file://" + path.join(filepath, filename));
     } catch (error) {
-        return {
-            status:'FAILURE',
-            error
-        }
+        console.log(error)
     }
 
 }
 
-const launchPDFWindow= (filepath, filename)=>{
-    const win = new BrowserWindow({width: 1000, height: 800});
-    console.log(path.join(filepath,filename))
-    win.loadURL("file://"+path.join(filepath,filename));
-}
-
-const demo= async(repPath)=>{
-    const html=await ejs.renderFile(path.join(__dirname,'../','pdfTemplates','reportPdf','reportPdf.ejs'), { data: "sdfsadsdfsdafsdasadf" }, {async:true});
-    fs.writeFileSync(path.join(repPath,'tempReport.html'), html)
-    const win = new BrowserWindow({width: 1000, height: 800});
-    await win.loadFile(path.join(repPath,'tempReport.html'))
-    win.webContents.printToPDF({}).then(data => {
-        fs.writeFile(path.join(repPath,'765675.pdf'), data, (error) => {
-          if (error) throw error
-          console.log("Wrote PDF successfully")
-        })
-      }).catch(error => {
-        console.log(`Failed to write PDF to `, error)
-      })
-    win.on('closed',()=>{
-        fs.unlinkSync(path.join(repPath,'tempReport.html'))
-    })
-    
-}
 
 module.exports = {
-    billPDF,
-    reportPDF,
+    printPDF,
+    TYPE_BILL,
+    TYPE_REPORT,
     launchPDFWindow,
-    demo
 }

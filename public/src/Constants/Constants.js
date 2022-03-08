@@ -1,0 +1,12 @@
+const STATUS_SUCCESS= "SUCCESS";
+const STATUS_FAILURE ="FAILURE";
+
+const TYPE_REPORT="REPORT"
+const TYPE_BILL="BILL"
+
+module.exports={
+    STATUS_FAILURE,
+    STATUS_SUCCESS,
+    TYPE_BILL,
+    TYPE_REPORT
+}

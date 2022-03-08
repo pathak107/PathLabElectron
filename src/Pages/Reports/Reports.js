@@ -12,8 +12,10 @@ import {
     Progress,
     Text,
     Box,
-    Badge
+    Badge,
+    Link
 } from '@chakra-ui/react'
+import { ExternalLinkIcon } from '@chakra-ui/icons'
 import { useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlertContext } from '../../Context/AlertContext';
@@ -23,13 +25,26 @@ function Reports() {
     const [reports, setReports] = useState([])
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
-    const toggleReportStatus = (completed, report_file_path) => {
-        if (completed) {
-            // send a request to change completed to false
-        } else if (!completed && !report_file_path) {
+    const [completedStatus, setCompletedStatus]= useState(false); // Value is irrelavant, just used to update UI on changin complete status
+    const toggleReportStatus = async (completed, report_file_path, reportID) => {
+        if (!completed && !report_file_path) {
             diaCtx.actions.showDialog("Fill the Report", "Sorry, can't change status to done because you haven't filled the report yet. Fill the report to generate a pdf and then try again.")
         } else {
-            //send a request to change completed to true
+            //send a request to toggle
+            const changed= await window.api.toggleReportStatus({
+                currentReportStatus: completed,
+                reportID
+            })
+            if(changed.status==="SUCCESS"){
+                setCompletedStatus(!completedStatus)
+                if(completed){
+                    diaCtx.actions.showDialog("Done", "Status changed to Pending, now you can edit the report.")
+                }else{
+                    diaCtx.actions.showDialog("Done", "Done the report is complete. The PDF URL will be sent to the patient through an SMS message")
+                }
+            }else{
+                diaCtx.actions.showDialog("Failed", "Oops! Some error occured in completing the report. Please try again.")
+            }
         }
     }
 
@@ -43,6 +58,18 @@ function Reports() {
         setReports(reportList.data)
     }
 
+    const launchReportPDFWindow=(fileName)=>{
+        window.api.launchReportPDFWindow(fileName)
+    }
+
+    const editReport= async (reportID, completed)=>{
+        if(completed){
+            diaCtx.actions.showDialog("Change the status","Report is already completed. Change the status to pending to edit this report.");
+        }else{
+            navigate(`/reports/editReport/${reportID}`)
+        }
+    }
+
     useEffect(() => {
         let isApiSubscribed = true;
         if (isApiSubscribed) {
@@ -51,10 +78,10 @@ function Reports() {
         return () => {
             isApiSubscribed = false
         }
-    }, [])
+    }, [completedStatus])
     return (
         <>
-            <Container maxW='container.lg' centerContent>
+            <Container maxW='container.xl' centerContent>
                 {isLoading ? <Progress size='xs' isIndeterminate /> :
                     reports.length === 0 ? <Text>Sorry there are no reports to show.</Text> :
                         <Table variant='simple'>
@@ -80,12 +107,15 @@ function Reports() {
                                         <Td>{report.Test_Detail.name}</Td>
                                         <Td>{report.Invoice.Patient.name}</Td>
                                         <Td>
-                                            <Badge ml='1' fontSize='1em' colorScheme={report.completed ? 'green' : 'red'} as='button' onClick={() => toggleReportStatus(report.completed, report.report_file_path)}>
+                                            <Badge ml='1' fontSize='1em' colorScheme={report.completed ? 'green' : 'red'} as='button' onClick={() => toggleReportStatus(report.completed, report.report_file_path, report.id)}>
                                                 {report.completed ? 'Done' : 'Pending'}
                                             </Badge>
                                         </Td>
-                                        <Td><Button onClick={() => navigate(`/reports/editReport/${report.id}`)}>Edit</Button></Td>
-                                        <Td>{report.report_file_path ? report.report_file_path : '___'}</Td>
+                                        <Td><Button onClick={() => editReport(report.id, report.completed)}>Edit</Button></Td>
+                                        <Td>{report.report_file_path ?
+                                            <Link onClick={() => launchReportPDFWindow(report.report_file_path)} color='teal.500' isExternal>
+                                                {report.report_file_path} <ExternalLinkIcon mx='2px' />
+                                            </Link> : '___'}</Td>
                                         <Td>{report.createdAt.toString()}</Td>
                                     </Tr>
                                 })

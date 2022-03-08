@@ -16,5 +16,8 @@ contextBridge.exposeInMainWorld(
         getReports:()=>ipcRenderer.invoke('getReports'),
         getReportParameters:(reportID)=>ipcRenderer.invoke('getReportParameters', reportID),
         editReport: (reportData)=> ipcRenderer.invoke('editReport', reportData),
+        launchReportPDFWindow: (fileName)=>ipcRenderer.send('launchReportPDFWindow', fileName),
+        launchBillPDFWindow: (fileName)=>ipcRenderer.send('launchBillPDFWindow', fileName),
+        toggleReportStatus: (data)=> ipcRenderer.invoke('toggleReportStatus', data)
     }
 );

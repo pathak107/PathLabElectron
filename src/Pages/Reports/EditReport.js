@@ -13,9 +13,11 @@ import {
     TableCaption,
     Progress,
     Text,
-    Spinner
+    Spinner,
+    Link
 
 } from "@chakra-ui/react";
+import { ExternalLinkIcon } from '@chakra-ui/icons'
 import { useContext, useEffect, useState } from 'react'
 import { useParams } from "react-router-dom";
 import { AlertContext } from "../../Context/AlertContext";
@@ -91,6 +93,10 @@ function EditReport() {
         }
     }
 
+    const launchReportPDFWindow=(fileName)=>{
+        window.api.launchReportPDFWindow(fileName)
+    }
+
     return (
         <>
             <Container maxW='container.lg'>
@@ -106,7 +112,10 @@ function EditReport() {
                                 <Text>Patient: {reportData.patient_name}</Text>
                                 <Text>Patient Number: {reportData.Patient_contact_number}</Text>
                                 <Text>Date: {reportData.date}</Text>
-                                <Text>Report PDF: {reportData.report_PDF ? reportData.report_PDF : "No report PDF generated"}</Text>
+                                <Text>Report PDF: {reportData.report_PDF ?
+                                    <Link onClick={()=>launchReportPDFWindow(reportData.report_PDF)} color='teal.500'isExternal>
+                                        {reportData.report_PDF} <ExternalLinkIcon mx='2px' />
+                                    </Link>  : "No report PDF generated"}</Text>
                                 <Text>Status: {reportData.status ? "Done" : "Pending"}</Text>
                                 <Text>Referred By: {reportData.referred_by}</Text>
                             </Stack>

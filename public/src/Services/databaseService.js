@@ -19,8 +19,8 @@ if (isDev) {
 }
 
 const status = {
-    SUCCESS: 'success',
-    FAILURE: 'failure',
+    SUCCESS: 'SUCCESS',
+    FAILURE: 'FAILURE',
 };
 Object.freeze(status);
 
@@ -197,6 +197,17 @@ const saveReportPdfFileName=async (fileName, reportID)=>{
     
 }
 
+const toggleReportStatus= async (currentReportStatus, reportID)=>{
+    try {
+        const report = await Report.findByPk(reportID)
+        report.completed= !currentReportStatus
+        await report.save()
+        return response(status.SUCCESS, null, null)
+    } catch (error) {
+        return response(status.FAILURE, error, null)
+    }
+}
+
 module.exports = {
     addTest,
     getTests,
@@ -207,5 +218,6 @@ module.exports = {
     getReportParameters,
     editReport,
     saveReportPdfFileName,
-    status
+    status,
+    toggleReportStatus
 }

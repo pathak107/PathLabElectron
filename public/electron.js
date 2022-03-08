@@ -51,8 +51,6 @@ const createStorageDirectory=()=>{
     }else{
         currDir=app.getAppPath();
     }
-
-    pdfService.demo(reportsPath)
 }
 
 
@@ -107,7 +105,7 @@ ipcMain.handle("generateBill", (event, data) => {
     console.log(data);
     databaseService.generateBill(data.patient_name, data.patient_contactNumber, data.total_amount, data.discount, data.referred_by, data.testList)
     //TODO: implement proper logic
-    pdfService.billPDF( billsPath, currDir)
+    pdfService.printPDF(billsPath, pdfService.TYPE_BILL, "jbh")
 });
 
 ipcMain.handle('getReports', async (event, data) => {
@@ -129,11 +127,10 @@ ipcMain.handle('editReport', async (event,data)=>{
         //Send an error response to user
         return reportData
     }else{
-        const reportPdf=await pdfService.reportPDF(reportData.data, reportsPath, currDir)
+        const reportPdf=await pdfService.printPDF(reportsPath, pdfService.TYPE_REPORT ,reportData.data)
         if(reportPdf.status==="SUCCESS"){
             return await databaseService.saveReportPdfFileName(reportPdf.fileName, reportData.data.report_id)
         }else{
-            //TODO: Inform user pdf could not be generated
             return {
                 status:"FAILURE",
                 error:"Pdf could not be generated",
@@ -143,3 +140,33 @@ ipcMain.handle('editReport', async (event,data)=>{
     }
 })
 
+ipcMain.on('launchReportPDFWindow', async (event, fileName)=>{
+    pdfService.launchPDFWindow(reportsPath,fileName)
+})
+
+ipcMain.on('launchBillPDFWindow', async (event, fileName)=>{
+    pdfService.launchPDFWindow(billsPath,fileName)
+})
+
+ipcMain.handle('toggleReportStatus', async (event, data) => {
+    const statusChanged = await databaseService.toggleReportStatus(data.currentReportStatus, data.reportID);
+    console.log(statusChanged)
+    if(statusChanged.status==="SUCCESS"){
+        if(!data.currentReportStatus){
+            // Upload PDF and message the patient
+            console.log("Upload PDF and message the patient")
+        }
+        return {
+            status:"SUCCESS",
+            error:"Report status updated, pdf upload and SMS will begin in background",
+            data: null
+        }
+    }else{
+        return {
+            status:"FAILURE",
+            error: statusChanged.error,
+            data: null
+        }
+
+    }
+})
