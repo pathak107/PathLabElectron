@@ -5,6 +5,8 @@ const fs= require('fs')
 const sequelize = require('./src/Database/dbConnection')
 const databaseService = require('./src/Services/databaseService')
 const pdfService= require('./src/Services/pdfService');
+const webService= require('./src/Services/webService')
+const consts= require('./src/Constants/Constants')
 
 let win;
 function createWindow() {
@@ -39,6 +41,7 @@ let reportsPath;
 let currDir;
 const createStorageDirectory=()=>{
     const dir= path.join(app.getPath('documents'),'PathLabLite')
+    // TODO: Change sync to async for better performace
     if (!fs.existsSync(dir)){
         fs.mkdirSync(dir);
         fs.mkdirSync(path.join(dir,'Bills'));
@@ -56,6 +59,7 @@ const createStorageDirectory=()=>{
 
 app.whenReady().then(async () => {
     createWindow()
+    webService.demoReq()
     try {
         await sequelize.authenticate();
         console.log("Successfully connected to database");
@@ -101,11 +105,23 @@ ipcMain.handle("addTestParameter", async (event, data) => {
     return await databaseService.addTestParameter(data.name, data.unit, data.range, data.description, data.testID);
 });
 
-ipcMain.handle("generateBill", (event, data) => {
+ipcMain.handle("generateBill", async (event, data) => {
     console.log(data);
-    databaseService.generateBill(data.patient_name, data.patient_contactNumber, data.total_amount, data.discount, data.referred_by, data.testList)
-    //TODO: implement proper logic
-    pdfService.printPDF(billsPath, pdfService.TYPE_BILL, "jbh")
+    const billGenerated= await databaseService.generateBill(data)
+    if(billGenerated.status===consts.STATUS_SUCCESS){
+        const pdf= await pdfService.printPDF(billsPath, pdfService.TYPE_BILL, billGenerated.data)
+        if(pdf.status===consts.STATUS_SUCCESS){
+            //TODO: If pdf is successful update the pdf filepath in invoice database
+            return billGenerated
+        }
+        return {
+            status:consts.STATUS_FAILURE,
+            error:"Bill Pdf could not be generated.",
+            data:null
+        }
+    }
+
+    return billGenerated
 });
 
 ipcMain.handle('getReports', async (event, data) => {

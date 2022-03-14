@@ -33,7 +33,7 @@ function AddTestParameterModal() {
                 </Stack>
             </ModalBody>
             <ModalFooter>
-            {ctx.state.isLoading? <Spinner />:<Button variant='ghost' onClick={ctx.actions.addTestParameter}>Save</Button>}
+            <Button isLoading={ctx.state.isLoading} variant='ghost' onClick={ctx.actions.addTestParameter}>Save</Button>
             <Button colorScheme='blue' mr={3} onClick={()=>ctx.actions.setIsOpen(false)}>
                 Close
             </Button>

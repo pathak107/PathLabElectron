@@ -6,6 +6,8 @@ const BillContextProvider = ({ children }) => {
     const ctx = useContext(AlertContext);
     const [name, setName] = useState('');
     const [contactNumber, setContactNumber] = useState('');
+    const [gender, setGender]=useState('MALE')
+    const [age, setAge]=useState(0);
     const [discount, setDiscount] = useState(0);
     const [tests, setTests] = useState([]);
     const [doctor, setDoctor] = useState('');
@@ -53,25 +55,25 @@ const BillContextProvider = ({ children }) => {
         setTests(newTests)
     }
 
-    const submitHandler = () => {
-        console.log(name);
-        console.log(contactNumber);
-        console.log(discount);
-        console.log(tests);
-        console.log(doctor);
-        window.api.generateBill({
+    const submitHandler = async () => {
+        const created= await window.api.generateBill({
             patient_name:name,
             patient_contactNumber:contactNumber,
+            age:age,
+            gender:gender,
             discount,
             testList:tests,
             total_amount:totalAmt,
             referred_by: doctor
         })
+        if(created.status==="FAILURE"){
+            ctx.actions.showDialog("Failed", "Oops! Some error occured in generating the bill. Please try again.")
+        }
     }
 
     const value = {
-        state: { name, contactNumber, discount, tests, doctor, allTests, totalAmt, isLoading },
-        actions: { setName, setContactNumber, setDiscount, setTests, setDoctor, submitHandler, setTotalAmt, addTest, removeTest }
+        state: { name, contactNumber, discount, tests, doctor, allTests, totalAmt, isLoading, age, gender },
+        actions: { setName, setContactNumber, setDiscount, setTests, setDoctor, submitHandler, setTotalAmt, addTest, removeTest, setAge, setGender}
     }
 
     return (

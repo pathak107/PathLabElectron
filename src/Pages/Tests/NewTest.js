@@ -69,7 +69,7 @@ function NewTest() {
                         <FormLabel htmlFor="description">Description</FormLabel>
                         <Textarea placeholder='Description' value={desc} onChange={(e)=>setDesc(e.target.value)} />
                     </FormControl>
-                    {isLoading? <Spinner/> :<Button colorScheme='gray' onClick={()=>submitHandler()}>Submit</Button>}
+                    <Button isLoading={isLoading} colorScheme='gray' onClick={()=>submitHandler()}>Submit</Button>
                 </Stack>
             </Container>
         </>

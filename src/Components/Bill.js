@@ -22,6 +22,8 @@ function Bill() {
                     <Heading size='md'>Bill</Heading>
                     <Text fontSize='lg'>Patient's Name: {billCtx.state.name}</Text>
                     <Text fontSize='lg'>Contact Number: {billCtx.state.contactNumber}</Text>
+                    <Text fontSize='lg'>Age: {billCtx.state.age}</Text>
+                    <Text fontSize='lg'>Gender: {billCtx.state.gender}</Text>
                     <Table variant='simple' size='sm'>
                         <Thead>
                             <Tr>

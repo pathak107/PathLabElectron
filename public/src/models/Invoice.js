@@ -16,6 +16,12 @@ const Invoice = sequelize.define('Invoice', {
     type: DataTypes.DOUBLE,
     defaultValue:0
   },
+  bill_cache: {
+    type: DataTypes.STRING, // To store the json value of bill to avoid joining of multiple tables
+  },
+  bill_file_path: {
+    type: DataTypes.STRING,
+  },
 
 }, {
   // Other model options go here

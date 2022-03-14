@@ -36,7 +36,33 @@ const NewInvoice = () => {
                             billCtx.actions.setContactNumber(e.target.value);
                         }} />
                     </InputGroup>
-
+                    <FormControl>
+                        <FormLabel htmlFor='Age'>Age</FormLabel>
+                        <NumberInput
+                            value={billCtx.state.age}
+                            onChange={(age) => {
+                                billCtx.actions.setAge(age);
+                            }}
+                            min={1}
+                            max={100}
+                        >
+                            <NumberInputField placeholder='Age' />
+                            <NumberInputStepper>
+                                <NumberIncrementStepper />
+                                <NumberDecrementStepper />
+                            </NumberInputStepper>
+                        </NumberInput>
+                    </FormControl>
+                    <Select width='full' placeholder='Gender'
+                        onChange={(e) => {
+                            billCtx.actions.setGender(e.target.value)
+                        }}
+                        value={billCtx.actions.gender}
+                    >
+                        <option value="MALE">Male</option>
+                        <option value="FEMALE">Female</option>
+                        <option value="OTHER">Other</option>
+                    </Select>
                     <Select width='full' placeholder='Select Test'
                         onChange={(e) => {
                             setSingleTestID(e.target.value)

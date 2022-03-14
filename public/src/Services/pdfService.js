@@ -15,12 +15,12 @@ const printPDF= async (storagePath, type, data)=>{
         fileName = `reportR${data.report_id}T${data.test_name}.pdf`
     }else if(type===TYPE_BILL){
         templatePath= path.join(__dirname, '../', 'pdfTemplates', 'billPdf', 'billPdf.ejs')
-        fileName = `BillB${1}T${2}.pdf`
+        fileName = `BillB${data.invoice_id}${data.invoiceDate}.pdf`
     }
 
     try {
         //Convert ejs to html and fill the data
-        const html = await ejs.renderFile(templatePath, { data: "sdfsadsdfsdafsdasadf" }, { async: true });
+        const html = await ejs.renderFile(templatePath, { data: data }, { async: true });
 
         //Write the html into a temporary html file
         fs.writeFileSync(path.join(storagePath, 'temp.html'), html)
@@ -30,8 +30,8 @@ const printPDF= async (storagePath, type, data)=>{
         await win.loadFile(path.join(storagePath, 'temp.html'))
 
         // Print the browser window and write the data into a pdf file
-        const data = await win.webContents.printToPDF({})
-        fs.writeFileSync(path.join(storagePath, fileName), data)
+        const pdfData = await win.webContents.printToPDF({})
+        fs.writeFileSync(path.join(storagePath, fileName), pdfData)
         console.log("Wrote PDF successfully")
 
         //Once the window closes delete the temporary html file

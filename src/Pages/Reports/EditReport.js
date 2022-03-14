@@ -165,7 +165,7 @@ function EditReport() {
                         </>
                     }
 
-                    {isLoading ? <Spinner /> : <Button colorScheme='gray' onClick={() => submitHandler()}>Submit</Button>}
+                    <Button isLoading={isLoading} colorScheme='gray' onClick={() => submitHandler()}>Submit</Button>
                 </Stack>
 
             </Container>

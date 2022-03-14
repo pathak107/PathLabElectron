@@ -1,5 +1,6 @@
 const sequelize = require('../Database/dbConnection');
 const isDev = require('electron-is-dev');
+const consts=require('../Constants/Constants')
 const TestDetails = require('../models/Test_Details');
 const TestParameter = require('../models/Test_Parameter');
 const Patient = require('../models/Patient');
@@ -39,7 +40,7 @@ const addTest = async (name, cost, description) => {
     } catch (error) {
         return response(status.FAILURE, error, null)
     }
-    
+
 }
 
 const getTests = async () => {
@@ -67,66 +68,82 @@ const addTestParameter = async (name, unit, range, description, testID) => {
     } catch (error) {
         return response(status.FAILURE, error, null)
     }
-    
+
 }
 
-const generateBill = async (patient_name, patient_contactNumber, total_amount, discount, referred_by, testList) => {
-    //TODO: Implement transactions here.
-    const [patient, created] = await Patient.findOrCreate({
-        where: { contact_number: patient_contactNumber },
-        defaults: {
-            name: patient_name,
-            contact_number: patient_contactNumber
-        }
-    });
-    const invoice = await Invoice.create({
-        total_amount: total_amount,
-        discount: discount,
-        final_amount: total_amount - discount,
-        PatientId: patient.get({ plain: true }).id
-    })
-
-    const reportsList = []
-    const testIDs = []
-    testList.forEach((test) => {
-        reportsList.push({ referred_by: referred_by, InvoiceId: invoice.get({ plain: true }).id, TestDetailId: test.id })
-        testIDs.push(test.id)
-    })
-    const reports = await Report.bulkCreate(reportsList);
-
-    // Creation of REPORT VALUES Table
-    const tests = await TestDetails.findAll({
-        where: {
-            id: testIDs
-        },
-        include: TestParameter
-    })
-    const reportValues = [] // {reportId:'2', parameterId:'5'}
-    reports.forEach((report) => {
-        const r = report.get({ plain: true })
-        console.log(r)
-        tests.forEach((test) => {
-            const t = test.get({ plain: true })
-            console.log(t)
-            if (t.id === r.TestDetailId) {
-                t.Test_Parameters.forEach((tp) => {
-                    reportValues.push({
-                        ReportId: r.id,
-                        TestParameterId: tp.id
-                    })
-                })
-            }
-        })
-    })
-    console.log(reportValues)
+const generateBill = async (data) => {
+    //Start Transaction
+    const t = await sequelize.transaction();
     try {
-        const reportV = await ReportValue.bulkCreate(reportValues);
-        console.log(reportV);
+        const [patient, created] = await Patient.findOrCreate({
+            where: { contact_number: data.patient_contactNumber },
+            defaults: {
+                name: data.patient_name,
+                contact_number: data.patient_contactNumber,
+                age: data.age,
+                gender: data.gender,
+            },
+            transaction:t,
+        });
+        const invoice = await Invoice.create({
+            total_amount: data.total_amount,
+            discount: data.discount,
+            final_amount: data.total_amount - data.discount,
+            PatientId: patient.get({ plain: true }).id
+        },{transaction:t})
+
+        const reportsList = []
+        const testIDs = []
+        data.testList.forEach((test) => {
+            reportsList.push({ referred_by: data.referred_by, InvoiceId: invoice.get({ plain: true }).id, TestDetailId: test.id })
+            testIDs.push(test.id)
+        })
+        const reports = await Report.bulkCreate(reportsList,{transaction:t});
+
+        // Creation of REPORT VALUES Table
+        const tests = await TestDetails.findAll({
+            where: {
+                id: testIDs
+            },
+            include: TestParameter
+        })
+        const reportValues = [] // {reportId:'2', parameterId:'5'}
+        reports.forEach((report) => {
+            const r = report.get({ plain: true })
+            console.log(r)
+            tests.forEach((test) => {
+                const t = test.get({ plain: true })
+                console.log(t)
+                if (t.id === r.TestDetailId) {
+                    t.Test_Parameters.forEach((tp) => {
+                        reportValues.push({
+                            ReportId: r.id,
+                            TestParameterId: tp.id
+                        })
+                    })
+                }
+            })
+        })
+        console.log(reportValues)
+        const reportV = await ReportValue.bulkCreate(reportValues, {transaction:t});
+        console.log(reportV)
+
+        const bill={
+            ...data, 
+            patient_id: patient.id,
+            invoice_id: invoice.id,
+            invoiceDate: invoice.createdAt,
+            final_amount: invoice.final_amount
+
+        }
+
+        t.commit();
+        return response(consts.STATUS_SUCCESS, null, bill)
     } catch (error) {
-        console.log(error)
+        console.log(error);
+        t.rollback();
+        return response(consts.STATUS_FAILURE, error, null)
     }
-
-
 }
 
 
@@ -169,13 +186,13 @@ const editReport = async (data) => {
             reportVals.push({
                 ReportId: data.report_id,
                 TestParameterId: rv.para_id,
-                value:rv.value
+                value: rv.value
             })
         })
         console.log(reportVals)
         await ReportValue.bulkCreate(reportVals, { updateOnDuplicate: ["value"] })
         //TODO: Better implementation for date
-        data.date=Date.now()
+        data.date = Date.now()
         return response(status.SUCCESS, null, data)
     } catch (error) {
         return response(status.FAILURE, error, null)
@@ -183,24 +200,24 @@ const editReport = async (data) => {
 
 }
 
-const saveReportPdfFileName=async (fileName, reportID)=>{
+const saveReportPdfFileName = async (fileName, reportID) => {
     try {
-        await Report.update({report_file_path: fileName},{
-            where:{
-                id:reportID
+        await Report.update({ report_file_path: fileName }, {
+            where: {
+                id: reportID
             }
         })
         return response(status.SUCCESS, null, null)
     } catch (error) {
         return response(status.FAILURE, error, null)
     }
-    
+
 }
 
-const toggleReportStatus= async (currentReportStatus, reportID)=>{
+const toggleReportStatus = async (currentReportStatus, reportID) => {
     try {
         const report = await Report.findByPk(reportID)
-        report.completed= !currentReportStatus
+        report.completed = !currentReportStatus
         await report.save()
         return response(status.SUCCESS, null, null)
     } catch (error) {
