@@ -191,9 +191,7 @@ const editReport = async (data) => {
         })
         console.log(reportVals)
         await ReportValue.bulkCreate(reportVals, { updateOnDuplicate: ["value"] })
-        //TODO: Better implementation for date
-        data.date = Date.now()
-        return response(status.SUCCESS, null, data)
+        return getReportParameters(data.report_id)
     } catch (error) {
         return response(status.FAILURE, error, null)
     }
@@ -209,6 +207,7 @@ const saveReportPdfFileName = async (fileName, reportID) => {
         })
         return response(status.SUCCESS, null, null)
     } catch (error) {
+        console.log(error)
         return response(status.FAILURE, error, null)
     }
 

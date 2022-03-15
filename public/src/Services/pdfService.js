@@ -12,7 +12,7 @@ const printPDF= async (storagePath, type, data)=>{
     console.log(data);
     if(type===TYPE_REPORT){
         templatePath= path.join(__dirname, '../', 'pdfTemplates', 'reportPdf', 'reportPdf.ejs')
-        fileName = `reportR${data.report_id}T${data.test_name}.pdf`
+        fileName = `reportR${data.id}T${data.Test_Detail.name}${data.updatedAt}.pdf`
     }else if(type===TYPE_BILL){
         templatePath= path.join(__dirname, '../', 'pdfTemplates', 'billPdf', 'billPdf.ejs')
         fileName = `BillB${data.invoice_id}${data.invoiceDate}.pdf`
@@ -26,7 +26,12 @@ const printPDF= async (storagePath, type, data)=>{
         fs.writeFileSync(path.join(storagePath, 'temp.html'), html)
 
         // Load the temporary html into a new browser window
-        const win = new BrowserWindow({ width: 1000, height: 800 , show:false});
+        const win = new BrowserWindow({ width: 1000, height: 800 , show:false, webPreferences: {
+            nodeIntegration: false,
+            nativeWindowOpen: true,
+            contextIsolation: true, // protect against prototype pollution
+            enableRemoteModule: false, // turn off remote
+        }});
         await win.loadFile(path.join(storagePath, 'temp.html'))
 
         // Print the browser window and write the data into a pdf file

@@ -19,7 +19,7 @@ function Header() {
                         }}
                     />}
 
-                    <Heading>PathLabLight</Heading>
+                    <Heading>Path Lab Lite</Heading>
 
                 </HStack>
             </Center>

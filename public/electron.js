@@ -38,7 +38,7 @@ function createWindow() {
 // Storage Directory
 let billsPath;
 let reportsPath;
-let currDir;
+let signaturesPath;
 const createStorageDirectory=()=>{
     const dir= path.join(app.getPath('documents'),'PathLabLite')
     // TODO: Change sync to async for better performace
@@ -46,20 +46,16 @@ const createStorageDirectory=()=>{
         fs.mkdirSync(dir);
         fs.mkdirSync(path.join(dir,'Bills'));
         fs.mkdirSync(path.join(dir,'Reports')); 
+        fs.mkdirSync(path.join(dir,'Signatures'));
     }
     billsPath=path.join(dir,'Bills')
     reportsPath=path.join(dir,'Reports')
-    if(isDev){
-        currDir=__dirname
-    }else{
-        currDir=app.getAppPath();
-    }
+    signaturesPath= path.join(dir, 'Signatures')
 }
 
 
 app.whenReady().then(async () => {
     createWindow()
-    webService.demoReq()
     try {
         await sequelize.authenticate();
         console.log("Successfully connected to database");
@@ -143,9 +139,11 @@ ipcMain.handle('editReport', async (event,data)=>{
         //Send an error response to user
         return reportData
     }else{
-        const reportPdf=await pdfService.printPDF(reportsPath, pdfService.TYPE_REPORT ,reportData.data)
+        const newReportData={...reportData.data, signature: path.join(signaturesPath,'signature.jpg')}
+        const reportPdf=await pdfService.printPDF(reportsPath, pdfService.TYPE_REPORT , newReportData)
         if(reportPdf.status==="SUCCESS"){
-            return await databaseService.saveReportPdfFileName(reportPdf.fileName, reportData.data.report_id)
+            const sd= await databaseService.saveReportPdfFileName(reportPdf.fileName, newReportData.id)
+            return sd;
         }else{
             return {
                 status:"FAILURE",
