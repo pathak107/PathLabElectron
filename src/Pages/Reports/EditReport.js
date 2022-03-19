@@ -34,7 +34,8 @@ function EditReport() {
         report_PDF: "",
         status: false,
         referred_by: "",
-        report_values: []
+        report_values: [],
+        remarks:""
     });
     const [isLoading, setIsLoading] = useState(false);
 
@@ -64,7 +65,8 @@ function EditReport() {
                 report_PDF: rp.data.report_file_path,
                 status: rp.data.completed,
                 referred_by: rp.data.referred_by,
-                report_values: reportValues
+                report_values: reportValues,
+                remarks: rp.data.remarks
             })
 
         }

@@ -29,10 +29,10 @@
     font-family: Arial;
   }
 
-  header {
+  /* header {
     padding: 10px 0;
     margin-bottom: 30px;
-  }
+  } */
 
   #logo {
     text-align: center;
@@ -53,6 +53,13 @@
     text-align: center;
     margin: 0 0 20px 0;
     background: url(dimension.png);
+  }
+
+  .banner{
+    border-top: 1px solid #5D6975;
+    border-bottom: 1px solid #5D6975;
+    text-align: center;
+    margin: 0 0 0 0;
   }
 
   br {
@@ -151,23 +158,25 @@
 
 <body>
   <header class="clearfix">
-    <div id="logo">
-      <img src="logo.png">
+    <div class="banner">
+      <%if(data.labDetails.labBanner){%>
+        <img src="<%=data.labDetails.labBanner%>">
+      <%}else{%>
+        <h2><%=data.labDetails.name%></h2>
+        <h2><%=data.labDetails.address%></h2>
+        <h2><%=data.labDetails.contactNumbers%></h2>
+        <h2><%=data.labDetails.email%></h2>
+      <%}%>
     </div>
-    <h1>Report: <%=data.Test_Detail.name%> (R#<%=data.id%>)</h1>
+    <h1><%=data.Test_Detail.name%> (R#<%=data.id%>)</h1>
     <div id="company" class="clearfix">
-      <div>Labs Name</div>
-      <div>455 Foggy Heights,<br /> AZ 85004, US</div>
-      <div>(602) 519-0450</div>
-      <div><a href="mailto:company@example.com">company@example.com</a></div>
+      <div><span>TEST DATE:</span> <%=data.updatedAt%></div>
+      <div><span>REPORT DATE:</span> <%=data.updatedAt%></div>
     </div>
     <div id="project">
       <div><span>PATIENT</span> <%=data.Invoice.Patient.name%> (P#<%=data.Invoice.Patient.id%>)</div>
       <div><span>CONTACT</span> <%=data.Invoice.Patient.contact_number%></div>
-      <div><span>AGE</span> <%=data.Invoice.Patient.age%></div>
-      <div><span>SEX</span> <%=data.Invoice.Patient.gender%> (MALE/FEMALE/OTHER)</div>
-      <div><span>TEST DATE</span> <%=data.updatedAt%></div>
-      <div><span>REPORT DATE</span> Some Date</div>
+      <div><span>AGE & SEX</span> <%=data.Invoice.Patient.age%>, <%=data.Invoice.Patient.gender%></div>
       <div><span>REFERRED BY</span> <%=data.referred_by%></div>
     </div>
   </header>
@@ -207,9 +216,11 @@
       <div>Dr. Some Name</div>
       <div>MBBS, MD</div>
       <div>Microbiologist</div>
-      <div id="logo">
-        <img src="<%=data.signature%>">
-      </div>
+      <% if(data.signature){ %>
+        <div id="logo">
+          <img src="<%=data.signature%>">
+        </div>
+      <%}%>
     </div>
     
   </main>

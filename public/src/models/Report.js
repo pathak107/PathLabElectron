@@ -12,6 +12,10 @@ const Report = sequelize.define('Report', {
     report_file_path: {
         type: DataTypes.STRING,
     },
+    remarks: {
+        type: DataTypes.TEXT,
+    },
+    
 }, {
     // Other model options go here
 });

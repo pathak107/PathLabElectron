@@ -150,7 +150,7 @@ const generateBill = async (data) => {
 const getReports = async () => {
     const reports = [];
     try {
-        const reportModels = await Report.findAll({ include: [{ model: Invoice, include: Patient }, { model: TestDetails }] })
+        const reportModels = await Report.findAll({ include: [{ model: Invoice, include: Patient }, { model: TestDetails }] , order: [['updatedAt', 'DESC']],})
         reportModels.forEach((reportModel) => {
             reports.push(reportModel.get({ plain: true }))
         })
@@ -190,6 +190,7 @@ const editReport = async (data) => {
             })
         })
         console.log(reportVals)
+        // await Report.update()
         await ReportValue.bulkCreate(reportVals, { updateOnDuplicate: ["value"] })
         return getReportParameters(data.report_id)
     } catch (error) {

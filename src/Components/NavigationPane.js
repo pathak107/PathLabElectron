@@ -38,6 +38,9 @@ function NavigationPane() {
                         <Tr>
                             <Td><Box onClick={() => navigate('/doctors')} as='button'>Doctors</Box></Td>
                         </Tr>
+                        <Tr>
+                            <Td><Box onClick={() => navigate('/settings')} as='button'>Settings</Box></Td>
+                        </Tr>
                     </Tbody>
                 </Table>
             </VStack>

@@ -11,6 +11,7 @@ import EditTest from "./Pages/Tests/EditTest";
 import { TestParaContextProvider } from "./Context/TestParaContext";
 import Reports from "./Pages/Reports/Reports";
 import EditReport from "./Pages/Reports/EditReport";
+import Settings from "./Pages/Settings/Settings";
 
 function App() {
   return (
@@ -30,6 +31,8 @@ function App() {
 
           <Route path="/reports" element={<Reports />} />
           <Route path="/reports/editReport/:reportID" element={<EditReport />} />
+
+          <Route path="/settings" element={<Settings />} />
         </Routes>
       </Flex>
     </div>
