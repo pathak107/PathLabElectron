@@ -202,6 +202,10 @@
       </tbody>
     </table>
     <div id="notices">
+      <div>REMARKS:</div>
+      <%=data.remarks%>
+    </div>
+    <div id="notices">
       <div>DECRIPTION:</div>
       <%for(let i=0; i< data.Test_Parameters.length; i++){ %>
         <div class="notice"><%=data.Test_Parameters[i].name%>: <%=data.Test_Parameters[i].description%></div>

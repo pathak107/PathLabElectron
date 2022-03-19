@@ -12,6 +12,9 @@ import {
     Td,
     TableCaption,
     Progress,
+    FormControl,
+    FormLabel,
+    Textarea,
     Text,
     Spinner,
     Link
@@ -35,7 +38,7 @@ function EditReport() {
         status: false,
         referred_by: "",
         report_values: [],
-        remarks:""
+        remarks: ""
     });
     const [isLoading, setIsLoading] = useState(false);
 
@@ -95,7 +98,7 @@ function EditReport() {
         }
     }
 
-    const launchReportPDFWindow=(fileName)=>{
+    const launchReportPDFWindow = (fileName) => {
         window.api.launchReportPDFWindow(fileName)
     }
 
@@ -115,9 +118,9 @@ function EditReport() {
                                 <Text>Patient Number: {reportData.Patient_contact_number}</Text>
                                 <Text>Date: {reportData.date}</Text>
                                 <Text>Report PDF: {reportData.report_PDF ?
-                                    <Link onClick={()=>launchReportPDFWindow(reportData.report_PDF)} color='teal.500'isExternal>
+                                    <Link onClick={() => launchReportPDFWindow(reportData.report_PDF)} color='teal.500' isExternal>
                                         {reportData.report_PDF} <ExternalLinkIcon mx='2px' />
-                                    </Link>  : "No report PDF generated"}</Text>
+                                    </Link> : "No report PDF generated"}</Text>
                                 <Text>Status: {reportData.status ? "Done" : "Pending"}</Text>
                                 <Text>Referred By: {reportData.referred_by}</Text>
                             </Stack>
@@ -164,6 +167,14 @@ function EditReport() {
 
                                 </Tbody>
                             </Table>
+                            <FormControl>
+                                <FormLabel htmlFor="remarks">Remarks/Feedback/Result</FormLabel>
+                                <Textarea placeholder="Remarks/Feedback/Result" value={reportData.remarks} onChange={(e) => {
+                                    const newReportData= {...reportData}
+                                    newReportData.remarks=e.target.value
+                                    setReportData(newReportData)
+                                }} />
+                            </FormControl>
                         </>
                     }
 

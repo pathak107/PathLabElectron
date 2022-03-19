@@ -11,7 +11,7 @@ const ReportValue = require('../models/Report_Value')
 if (isDev) {
     (async () => {
         try {
-            await sequelize.sync({ alter: true });
+            await sequelize.sync({ force: true });
         } catch (error) {
             console.log(error)
         }
@@ -180,6 +180,7 @@ const getReportParameters = async (reportID) => {
 
 const editReport = async (data) => {
     console.log(data)
+    const t = await sequelize.transaction();
     const reportVals = []
     try {
         data.report_values.forEach((rv) => {
@@ -190,10 +191,17 @@ const editReport = async (data) => {
             })
         })
         console.log(reportVals)
-        // await Report.update()
-        await ReportValue.bulkCreate(reportVals, { updateOnDuplicate: ["value"] })
+        await Report.update({ remarks: data.remarks }, {
+            where: {
+              id: data.report_id
+            },
+            transaction:t
+          });
+        await ReportValue.bulkCreate(reportVals, { updateOnDuplicate: ["value"], transaction:t })
+        t.commit();
         return getReportParameters(data.report_id)
     } catch (error) {
+        t.rollback()
         return response(status.FAILURE, error, null)
     }
 
