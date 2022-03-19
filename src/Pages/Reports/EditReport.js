@@ -24,6 +24,8 @@ import { ExternalLinkIcon } from '@chakra-ui/icons'
 import { useContext, useEffect, useState } from 'react'
 import { useParams } from "react-router-dom";
 import { AlertContext } from "../../Context/AlertContext";
+import ReactQuill from "react-quill";
+import 'react-quill/dist/quill.snow.css'
 
 function EditReport() {
     const diaCtx = useContext(AlertContext)
@@ -167,20 +169,23 @@ function EditReport() {
 
                                 </Tbody>
                             </Table>
+
                             <FormControl>
                                 <FormLabel htmlFor="remarks">Remarks/Feedback/Result</FormLabel>
-                                <Textarea placeholder="Remarks/Feedback/Result" value={reportData.remarks} onChange={(e) => {
-                                    const newReportData= {...reportData}
-                                    newReportData.remarks=e.target.value
-                                    setReportData(newReportData)
-                                }} />
+                                <ReactQuill 
+                                    value={reportData.remarks}
+                                    placeholder="Remarks/Feedback/Result"
+                                    onChange={(value) => {
+                                        const newReportData = { ...reportData }
+                                        newReportData.remarks = value
+                                        setReportData(newReportData)
+                                    }} />
                             </FormControl>
                         </>
                     }
 
                     <Button isLoading={isLoading} colorScheme='gray' onClick={() => submitHandler()}>Submit</Button>
                 </Stack>
-
             </Container>
         </>
     );

@@ -24,6 +24,7 @@ import {
 
 } from "@chakra-ui/react";
 import { useContext, useEffect, useState } from 'react'
+import ReactQuill from "react-quill";
 import { useLocation, useParams } from "react-router-dom";
 import AddTestParameterModal from "../../Components/PopOvers/AddTestParameter";
 import { AlertContext } from "../../Context/AlertContext";
@@ -104,10 +105,12 @@ function EditTest() {
 
                     <FormControl>
                         <FormLabel htmlFor="description">Description</FormLabel>
-                        <Textarea placeholder='Description' value={testData.description}
-                            onChange={(e) => {
+                        <ReactQuill
+                            value={testData.description}
+                            placeholde="Description"
+                            onChange={(value) => {
                                 const newTestData = { ...testData }
-                                newTestData.description = e.target.value
+                                newTestData.description = value
                                 setTestData(newTestData);
                             }}
                         />

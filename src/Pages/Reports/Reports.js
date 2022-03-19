@@ -70,6 +70,11 @@ function Reports() {
         }
     }
 
+    const dateString=(date)=>{
+        const dateObj=new Date(date)
+        return dateObj.toLocaleString();
+    }
+
     useEffect(() => {
         let isApiSubscribed = true;
         if (isApiSubscribed) {
@@ -116,7 +121,7 @@ function Reports() {
                                             <Link onClick={() => launchReportPDFWindow(report.report_file_path)} color='teal.500' isExternal>
                                                 {report.report_file_path} <ExternalLinkIcon mx='2px' />
                                             </Link> : '___'}</Td>
-                                        <Td>{report.createdAt.toString()}</Td>
+                                        <Td>{dateString(report.createdAt.toString())}</Td>
                                     </Tr>
                                 })
                                 }

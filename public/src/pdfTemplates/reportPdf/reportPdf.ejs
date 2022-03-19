@@ -170,7 +170,7 @@
     </div>
     <h1><%=data.Test_Detail.name%> (R#<%=data.id%>)</h1>
     <div id="company" class="clearfix">
-      <div><span>TEST DATE:</span> <%=data.updatedAt%></div>
+      <div><span>TEST DATE:</span> <%=data.createdAt%></div>
       <div><span>REPORT DATE:</span> <%=data.updatedAt%></div>
     </div>
     <div id="project">
@@ -203,7 +203,7 @@
     </table>
     <div id="notices">
       <div>REMARKS:</div>
-      <%=data.remarks%>
+      <%-data.remarks%>
     </div>
     <div id="notices">
       <div>DECRIPTION:</div>

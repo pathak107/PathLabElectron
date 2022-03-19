@@ -11,11 +11,17 @@ const printPDF= async (storagePath, type, data)=>{
     let templatePath;
     console.log(data);
     if(type===TYPE_REPORT){
+        const createdDate= new Date(data.createdAt)
+        const updatedDate= new Date(data.updatedAt)
+        data.createdAt= createdDate.toLocaleString();
+        data.updatedAt= updatedDate.toLocaleString();
         templatePath= path.join(__dirname, '../', 'pdfTemplates', 'reportPdf', 'reportPdf.ejs')
-        fileName = `reportR${data.id}T${data.Test_Detail.name}${data.updatedAt}.pdf`
+        fileName = `reportR${data.id}T${data.Test_Detail.id}-${Date.now()}.pdf`
     }else if(type===TYPE_BILL){
+        const date= new Date(data.invoiceDate)
+        data.invoiceDate=date.toLocaleString();
         templatePath= path.join(__dirname, '../', 'pdfTemplates', 'billPdf', 'billPdf.ejs')
-        fileName = `BillB${data.invoice_id}${data.invoiceDate}.pdf`
+        fileName = `BillB${data.invoice_id}-${Date.now()}.pdf`
     }
 
     try {
