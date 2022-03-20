@@ -9,6 +9,8 @@ const webService = require('./src/Services/webService')
 const storage =require('./src/Services/localStorage');
 const consts = require('./src/Constants/Constants')
 const { dialog } = require('electron')
+const { autoUpdater } = require("electron-updater")
+
 
 let win;
 function createWindow() {
@@ -71,6 +73,7 @@ app.whenReady().then(async () => {
         }
     })
     createStorageDirectory()
+    autoUpdater.checkForUpdatesAndNotify();
 })
 
 app.on('window-all-closed', () => {
