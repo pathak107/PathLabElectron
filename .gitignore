@@ -1,13 +1,14 @@
 
 # dependencies
 /node_modules
+/public/node_modules
 
 # testing
 /coverage
 
 # production
 /build
-/electronBuild
+/dist
 
 # misc
 .DS_Store

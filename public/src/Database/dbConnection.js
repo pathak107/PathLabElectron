@@ -4,7 +4,7 @@ const path = require('path')
 
 let dbFile;
 if (isDev) {
-    dbFile = path.join(__dirname, '../../../labTest.db')
+    dbFile = path.join(__dirname, '../../labTest.db')
 } else {
     dbFile = path.join(process.resourcesPath, '/labTest.db').replace('/app.asar', '');
 }
