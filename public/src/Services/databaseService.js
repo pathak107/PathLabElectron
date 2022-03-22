@@ -7,13 +7,14 @@ const Patient = require('../models/Patient');
 const Invoice = require('../models/Invoice');
 const Report = require('../models/Report');
 const ReportValue = require('../models/Report_Value')
+const log = require('electron-log');
 
 if (isDev) {
     (async () => {
         try {
             await sequelize.sync({ alter: true });
         } catch (error) {
-            console.log(error)
+            log.error(error)
         }
         // Code here
     })();
@@ -35,9 +36,11 @@ const response = (status, error, data) => {
 
 const addTest = async (name, cost, description) => {
     try {
+        log.info("Adding test Data: ", name, cost, description);
         await TestDetails.create({ name, cost, description });
         return response(status.SUCCESS, null, null)
     } catch (error) {
+        log.error("Error occurred in adding Test Data: ", error)
         return response(status.FAILURE, error, null)
     }
 
@@ -48,6 +51,7 @@ const getTests = async () => {
         const tests = await TestDetails.findAll({ raw: true });
         return response(status.SUCCESS, null, tests)
     } catch (error) {
+        log.error("Error in getting test data: ", error)
         return response(status.FAILURE, error, [])
     }
 }
@@ -57,6 +61,7 @@ const getTestParameters = async (testID) => {
         const test = await TestDetails.findOne({ where: { id: testID }, include: TestParameter })
         return response(status.SUCCESS, null, test.get({ plain: true }).Test_Parameters)
     } catch (error) {
+        log.error("Error in getting test parameters: ", error)
         return response(status.FAILURE, error, [])
     }
 }
@@ -66,6 +71,7 @@ const addTestParameter = async (name, unit, range, description, testID) => {
         await TestParameter.create({ name, unit, range, description, TestDetailId: testID })
         return response(status.SUCCESS, null, null)
     } catch (error) {
+        log.error("Error in adding Test Parameter: ", error)
         return response(status.FAILURE, error, null)
     }
 
@@ -110,10 +116,8 @@ const generateBill = async (data) => {
         const reportValues = [] // {reportId:'2', parameterId:'5'}
         reports.forEach((report) => {
             const r = report.get({ plain: true })
-            console.log(r)
             tests.forEach((test) => {
                 const t = test.get({ plain: true })
-                console.log(t)
                 if (t.id === r.TestDetailId) {
                     t.Test_Parameters.forEach((tp) => {
                         reportValues.push({
@@ -124,9 +128,8 @@ const generateBill = async (data) => {
                 }
             })
         })
-        console.log(reportValues)
         const reportV = await ReportValue.bulkCreate(reportValues, {transaction:t});
-        console.log(reportV)
+        log.info("Report Values: ",reportV)
 
         const bill={
             ...data, 
@@ -140,7 +143,7 @@ const generateBill = async (data) => {
         t.commit();
         return response(consts.STATUS_SUCCESS, null, bill)
     } catch (error) {
-        console.log(error);
+        log.error("Error in generating bill: ",error);
         t.rollback();
         return response(consts.STATUS_FAILURE, error, null)
     }
@@ -156,6 +159,7 @@ const getReports = async () => {
         })
         return response(status.SUCCESS, null, reports);
     } catch (error) {
+        log.error("Error in getting reports: ", error)
         return response(status.FAILURE, error, reports)
     }
 }
@@ -174,12 +178,13 @@ const getReportParameters = async (reportID) => {
         })
         return response(status.SUCCESS, null, reportPara.get({ plain: true }))
     } catch (error) {
+        log.error("Error while getting report parameters: ", error)
         return response(status.FAILURE, error, null)
     }
 }
 
 const editReport = async (data) => {
-    console.log(data)
+    log.info("Edited data for report: ",data)
     const t = await sequelize.transaction();
     const reportVals = []
     try {
@@ -190,7 +195,7 @@ const editReport = async (data) => {
                 value: rv.value
             })
         })
-        console.log(reportVals)
+        log.info("Report Values: ",reportVals)
         await Report.update({ remarks: data.remarks }, {
             where: {
               id: data.report_id
@@ -202,6 +207,8 @@ const editReport = async (data) => {
         return getReportParameters(data.report_id)
     } catch (error) {
         t.rollback()
+        log.error(error)
+        log.error("Error while editing report: ", error)
         return response(status.FAILURE, error, null)
     }
 
@@ -216,7 +223,7 @@ const saveReportPdfFileName = async (fileName, reportID) => {
         })
         return response(status.SUCCESS, null, null)
     } catch (error) {
-        console.log(error)
+        log.error("Error while saving report pdf filename: ",error)
         return response(status.FAILURE, error, null)
     }
 
@@ -229,6 +236,7 @@ const toggleReportStatus = async (currentReportStatus, reportID) => {
         await report.save()
         return response(status.SUCCESS, null, null)
     } catch (error) {
+        log.error("Error while toggling report Status: ", error)
         return response(status.FAILURE, error, null)
     }
 }

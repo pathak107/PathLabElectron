@@ -10,7 +10,14 @@ const storage =require('./src/Services/localStorage');
 const consts = require('./src/Constants/Constants')
 const { dialog } = require('electron')
 const { autoUpdater } = require("electron-updater")
-
+const log = require('electron-log');
+log.transports.remote.level = 'info';
+log.transports.remote.url = 'http://localhost:5000/logs'
+log.transports.remote.requestOptions={
+    auth:"agfghf"
+}
+const config= require('./config.json');
+log.info("API KEY IS: ",config.API_KEY)
 
 let win;
 function createWindow() {
@@ -63,9 +70,9 @@ app.whenReady().then(async () => {
     createWindow()
     try {
         await sequelize.authenticate();
-        console.log("Successfully connected to database");
+        log.info("Successfully connected to database")
     } catch (err) {
-        console.log(err)
+        log.error(err)
     }
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
@@ -93,29 +100,24 @@ const response=(status, error, data)=>{
     }
 }
 ipcMain.handle("addTest", async (event, data) => {
-    console.log(data);
     return await databaseService.addTest(data.name, data.cost, data.description)
 });
 
 ipcMain.handle('getTests', async (event, data) => {
     const tests = await databaseService.getTests();
-    console.log(tests)
     return tests
 });
 
 ipcMain.handle('getTestParameters', async (event, testID) => {
     const testPara = await databaseService.getTestParameters(testID);
-    console.log(testPara)
     return testPara
 });
 
 ipcMain.handle("addTestParameter", async (event, data) => {
-    console.log(data);
     return await databaseService.addTestParameter(data.name, data.unit, data.range, data.description, data.testID);
 });
 
 ipcMain.handle("generateBill", async (event, data) => {
-    console.log(data);
     const billGenerated = await databaseService.generateBill(data)
     if (billGenerated.status === consts.STATUS_SUCCESS) {
         const pdf = await pdfService.printPDF(billsPath, pdfService.TYPE_BILL, billGenerated.data)
@@ -135,19 +137,16 @@ ipcMain.handle("generateBill", async (event, data) => {
 
 ipcMain.handle('getReports', async (event, data) => {
     const reports = await databaseService.getReports();
-    console.log(reports)
     return reports
 });
 
 ipcMain.handle('getReportParameters', async (event, reportID) => {
     const reportParas = await databaseService.getReportParameters(reportID);
-    console.log(reportParas)
     return reportParas
 })
 
 ipcMain.handle('editReport', async (event, data) => {
     const reportData = await databaseService.editReport(data)
-    console.log(reportData)
     if (reportData.status === databaseService.status.FAILURE) {
         //Send an error response to user
         return reportData
@@ -178,11 +177,9 @@ ipcMain.on('launchBillPDFWindow', async (event, fileName) => {
 
 ipcMain.handle('toggleReportStatus', async (event, data) => {
     const statusChanged = await databaseService.toggleReportStatus(data.currentReportStatus, data.reportID);
-    console.log(statusChanged)
     if (statusChanged.status === "SUCCESS") {
         if (!data.currentReportStatus) {
             // Upload PDF and message the patient
-            console.log("Upload PDF and message the patient")
         }
         return {
             status: "SUCCESS",
@@ -223,7 +220,7 @@ ipcMain.handle('setLabDetails', async (event, data)=>{
         storage.setLabDetails(data.name, data.address, data.contactNumbers, data.email, bannerFilePath)
         return response(consts.STATUS_SUCCESS, null, null)
     } catch (error) {
-        console.log(error)
+        log.error(error)
         return response(consts.STATUS_FAILURE, error, null)
     }
 })

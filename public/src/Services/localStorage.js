@@ -1,4 +1,5 @@
 const Store = require('electron-store');
+const log = require('electron-log')
 
 //TODO: Schema validation
 const store = new Store();
@@ -16,7 +17,7 @@ const setLabDetails = (name, address, contactNumbers, email, labBanner) => {
 			labBanner
 		})
 	} catch (error) {
-		console.log(error)
+		log.error("Error in setting lab details: ",error)
 		throw error
 	}
 
@@ -36,7 +37,7 @@ const getLabDetails = () => {
 		}
 		return store.get(LAB_DETAILS)
 	} catch (error) {
-		console.log(error)
+		log.error("Error in getting lab details: ",error)
 		return {
 			name: '',
 			address: '',

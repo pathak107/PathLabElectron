@@ -20,6 +20,7 @@ PathLabLite is a desktop application for all the pathology lab tests needs.
 - Feature: Upload report pdfs to web, generate a URL and send the URL to the patient via an SMS.
 - electron-logger for better logging and a way to notify when some error occurs during production
 - Auto pulling of Test data from a server when new Test Data is published.
+- Change the menu items for browser window.
 
 ## How to use
 ### Development

@@ -1,6 +1,7 @@
 const path = require('path')
 const ejs = require('ejs')
 const fs = require('fs')
+const log = require('electron-log')
 const { BrowserWindow } = require('electron')
 
 const TYPE_REPORT="REPORT"
@@ -9,7 +10,8 @@ const TYPE_BILL="BILL"
 const printPDF= async (storagePath, type, data)=>{
     let fileName="";
     let templatePath;
-    console.log(data);
+    log.info("Data to be written into PDF: ", data);
+    log.info("Type of data = ", type)
     if(type===TYPE_REPORT){
         const createdDate= new Date(data.createdAt)
         const updatedDate= new Date(data.updatedAt)
@@ -23,6 +25,9 @@ const printPDF= async (storagePath, type, data)=>{
         templatePath= path.join(__dirname, '../', 'pdfTemplates', 'billPdf', 'billPdf.ejs')
         fileName = `BillB${data.invoice_id}-${Date.now()}.pdf`
     }
+
+    log.info("Template Path: ", templatePath)
+    log.info("FileName : ", fileName)
 
     try {
         //Convert ejs to html and fill the data
@@ -43,7 +48,7 @@ const printPDF= async (storagePath, type, data)=>{
         // Print the browser window and write the data into a pdf file
         const pdfData = await win.webContents.printToPDF({})
         fs.writeFileSync(path.join(storagePath, fileName), pdfData)
-        console.log("Wrote PDF successfully")
+        log.info("Wrote PDF successfully")
 
         //Once the window closes delete the temporary html file
         win.close()
@@ -58,7 +63,7 @@ const printPDF= async (storagePath, type, data)=>{
             fileName
         }
     } catch (error) {
-        console.log(error)
+        log.error("Error in generating PDF: ", error)
         return {
             status: 'FAILURE',
             error,
@@ -71,10 +76,10 @@ const printPDF= async (storagePath, type, data)=>{
 const launchPDFWindow = (filepath, filename) => {
     try {
         const win = new BrowserWindow({ width: 1000, height: 800, webPreferences:{nativeWindowOpen:true} });
-        console.log(path.join(filepath, filename))
+        log.info("Launching PDF at path: ", path.join(filepath, filename))
         win.loadURL("file://" + path.join(filepath, filename));
     } catch (error) {
-        console.log(error)
+        log.error("Error in launching PDF: ",error)
     }
 
 }
