@@ -1,31 +1,32 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../Database/dbConnection');
-const TestParameter= require('./Test_Parameter');
-const Report= require('./Report');
 
-const TestDetails = sequelize.define('Test_Details', {
-  name: {
-    type: DataTypes.STRING,
-    allowNull: false
-  },
-  description: {
-    type: DataTypes.TEXT,
-  },
-  cost: {
-    type: DataTypes.DOUBLE,
-    defaultValue:0.0,
-  },
-}, {
-  // Other model options go here
-});
+const TestDetails = (sequelize, association) => {
+  const testDetails = sequelize.define('Test_Details', {
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+    description: {
+      type: DataTypes.TEXT,
+    },
+    cost: {
+      type: DataTypes.DOUBLE,
+      defaultValue: 0.0,
+    },
+  }, {
+    // Other model options go here
+  });
 
-TestDetails.hasMany(TestParameter, {
-  onDelete:'CASCADE'
-});
-TestParameter.belongsTo(TestDetails);
+  testDetails.hasMany(association.TestParameter, {
+    onDelete: 'CASCADE'
+  });
+  association.TestParameter.belongsTo(testDetails);
 
-TestDetails.hasMany(Report,{
-  onDelete:'CASCADE'
-});
-Report.belongsTo(TestDetails);
-module.exports=TestDetails
+  testDetails.hasMany(association.Report, {
+    onDelete: 'CASCADE'
+  });
+  association.Report.belongsTo(testDetails);
+  return testDetails
+
+}
+module.exports = TestDetails

@@ -50,7 +50,7 @@
                 "repo": "PathLabElectron"
             }
         ],
-        "extraFiles": [
+        "extraResources": [
             "labTest.db"
         ]
     }

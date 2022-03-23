@@ -1,5 +1,5 @@
 const Store = require('electron-store');
-const log = require('electron-log')
+const log = require('./log')
 
 //TODO: Schema validation
 const store = new Store();

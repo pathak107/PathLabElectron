@@ -1,7 +1,5 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../Database/dbConnection');
-
-const TestParameter = sequelize.define('Test_Parameter', {
+const TestParameter = (sequelize)=> sequelize.define('Test_Parameter', {
     name: {
         type: DataTypes.STRING,
         allowNull: false

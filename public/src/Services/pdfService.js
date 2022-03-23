@@ -1,7 +1,7 @@
 const path = require('path')
 const ejs = require('ejs')
 const fs = require('fs')
-const log = require('electron-log')
+const log = require('./log')
 const { BrowserWindow } = require('electron')
 
 const TYPE_REPORT="REPORT"

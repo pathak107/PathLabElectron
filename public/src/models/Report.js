@@ -1,7 +1,6 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../Database/dbConnection');
 
-const Report = sequelize.define('Report', {
+const Report = (sequelize)=> sequelize.define('Report', {
     referred_by: {
         type: DataTypes.STRING,
     },

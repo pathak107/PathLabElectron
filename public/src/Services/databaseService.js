@@ -1,30 +1,12 @@
-const sequelize = require('../Database/dbConnection');
-const isDev = require('electron-is-dev');
-const consts=require('../Constants/Constants')
-const TestDetails = require('../models/Test_Details');
-const TestParameter = require('../models/Test_Parameter');
-const Patient = require('../models/Patient');
-const Invoice = require('../models/Invoice');
-const Report = require('../models/Report');
-const ReportValue = require('../models/Report_Value')
-const log = require('electron-log');
-
-if (isDev) {
-    (async () => {
-        try {
-            await sequelize.sync({ alter: true });
-        } catch (error) {
-            log.error(error)
-        }
-        // Code here
-    })();
-}
-
-const status = {
-    SUCCESS: 'SUCCESS',
-    FAILURE: 'FAILURE',
-};
-Object.freeze(status);
+const consts = require('../Constants/Constants')
+const log = require('./log');
+const TestParameterModel = require('../models/Test_Parameter');
+const ReportModel = require('../models/Report');
+const TestDetailsModel = require('../models/Test_Details');
+const InvoiceModel = require('../models/Invoice');
+const PatientModel = require('../models/Patient');
+const ReportValueModel = require('../models/Report_Value')
+const rawData = require('../RawData/RawData')
 
 const response = (status, error, data) => {
     return {
@@ -34,14 +16,45 @@ const response = (status, error, data) => {
     }
 }
 
+let TestDetails
+let TestParameter
+let Patient
+let Invoice
+let Report
+let ReportValue
+let sequelize
+
+const init = (sq) => {
+    sequelize = sq
+}
+
+const setupModels = () => {
+    TestParameter = TestParameterModel(sequelize)
+    Report = ReportModel(sequelize)
+    TestDetails = TestDetailsModel(sequelize, { TestParameter, Report })
+    Invoice = InvoiceModel(sequelize, { Report })
+    Patient = PatientModel(sequelize, { Invoice })
+    ReportValue = ReportValueModel(sequelize, { TestParameter, Report })
+    log.debug(TestDetails)
+}
+
+const setupDatabase = () => {
+    try {
+        const queryInterface = sequelize.getQueryInterface();
+        queryInterface.bulkInsert('Test_Details', rawData.TestDetailsData);
+    } catch (error) {
+        log.error(error)
+    }
+
+}
 const addTest = async (name, cost, description) => {
     try {
         log.info("Adding test Data: ", name, cost, description);
         await TestDetails.create({ name, cost, description });
-        return response(status.SUCCESS, null, null)
+        return response(consts.STATUS_SUCCESS, null, null)
     } catch (error) {
-        log.error("Error occurred in adding Test Data: ", error)
-        return response(status.FAILURE, error, null)
+        log.error(`Error occurred in adding Test Data: ${error}`)
+        return response(consts.STATUS_FAILURE, error, null)
     }
 
 }
@@ -49,30 +62,30 @@ const addTest = async (name, cost, description) => {
 const getTests = async () => {
     try {
         const tests = await TestDetails.findAll({ raw: true });
-        return response(status.SUCCESS, null, tests)
+        return response(consts.STATUS_SUCCESS, null, tests)
     } catch (error) {
-        log.error("Error in getting test data: ", error)
-        return response(status.FAILURE, error, [])
+        log.error(`Error in getting test data: ${error}`)
+        return response(consts.STATUS_FAILURE, error, [])
     }
 }
 
 const getTestParameters = async (testID) => {
     try {
         const test = await TestDetails.findOne({ where: { id: testID }, include: TestParameter })
-        return response(status.SUCCESS, null, test.get({ plain: true }).Test_Parameters)
+        return response(consts.STATUS_SUCCESS, null, test.get({ plain: true }).Test_Parameters)
     } catch (error) {
         log.error("Error in getting test parameters: ", error)
-        return response(status.FAILURE, error, [])
+        return response(consts.STATUS_FAILURE, error, [])
     }
 }
 
 const addTestParameter = async (name, unit, range, description, testID) => {
     try {
         await TestParameter.create({ name, unit, range, description, TestDetailId: testID })
-        return response(status.SUCCESS, null, null)
+        return response(consts.STATUS_SUCCESS, null, null)
     } catch (error) {
         log.error("Error in adding Test Parameter: ", error)
-        return response(status.FAILURE, error, null)
+        return response(consts.STATUS_FAILURE, error, null)
     }
 
 }
@@ -89,14 +102,14 @@ const generateBill = async (data) => {
                 age: data.age,
                 gender: data.gender,
             },
-            transaction:t,
+            transaction: t,
         });
         const invoice = await Invoice.create({
             total_amount: data.total_amount,
             discount: data.discount,
             final_amount: data.total_amount - data.discount,
             PatientId: patient.get({ plain: true }).id
-        },{transaction:t})
+        }, { transaction: t })
 
         const reportsList = []
         const testIDs = []
@@ -104,7 +117,7 @@ const generateBill = async (data) => {
             reportsList.push({ referred_by: data.referred_by, InvoiceId: invoice.get({ plain: true }).id, TestDetailId: test.id })
             testIDs.push(test.id)
         })
-        const reports = await Report.bulkCreate(reportsList,{transaction:t});
+        const reports = await Report.bulkCreate(reportsList, { transaction: t });
 
         // Creation of REPORT VALUES Table
         const tests = await TestDetails.findAll({
@@ -128,11 +141,11 @@ const generateBill = async (data) => {
                 }
             })
         })
-        const reportV = await ReportValue.bulkCreate(reportValues, {transaction:t});
-        log.info("Report Values: ",reportV)
+        const reportV = await ReportValue.bulkCreate(reportValues, { transaction: t });
+        log.info("Report Values: ", reportV)
 
-        const bill={
-            ...data, 
+        const bill = {
+            ...data,
             patient_id: patient.id,
             invoice_id: invoice.id,
             invoiceDate: invoice.createdAt,
@@ -143,7 +156,7 @@ const generateBill = async (data) => {
         t.commit();
         return response(consts.STATUS_SUCCESS, null, bill)
     } catch (error) {
-        log.error("Error in generating bill: ",error);
+        log.error("Error in generating bill: ", error);
         t.rollback();
         return response(consts.STATUS_FAILURE, error, null)
     }
@@ -153,14 +166,14 @@ const generateBill = async (data) => {
 const getReports = async () => {
     const reports = [];
     try {
-        const reportModels = await Report.findAll({ include: [{ model: Invoice, include: Patient }, { model: TestDetails }] , order: [['updatedAt', 'DESC']],})
+        const reportModels = await Report.findAll({ include: [{ model: Invoice, include: Patient }, { model: TestDetails }], order: [['updatedAt', 'DESC']], })
         reportModels.forEach((reportModel) => {
             reports.push(reportModel.get({ plain: true }))
         })
-        return response(status.SUCCESS, null, reports);
+        return response(consts.STATUS_SUCCESS, null, reports);
     } catch (error) {
         log.error("Error in getting reports: ", error)
-        return response(status.FAILURE, error, reports)
+        return response(consts.STATUS_FAILURE, error, reports)
     }
 }
 
@@ -176,15 +189,15 @@ const getReportParameters = async (reportID) => {
                 }
             ]
         })
-        return response(status.SUCCESS, null, reportPara.get({ plain: true }))
+        return response(consts.STATUS_SUCCESS, null, reportPara.get({ plain: true }))
     } catch (error) {
         log.error("Error while getting report parameters: ", error)
-        return response(status.FAILURE, error, null)
+        return response(consts.STATUS_FAILURE, error, null)
     }
 }
 
 const editReport = async (data) => {
-    log.info("Edited data for report: ",data)
+    log.info("Edited data for report: ", data)
     const t = await sequelize.transaction();
     const reportVals = []
     try {
@@ -195,21 +208,21 @@ const editReport = async (data) => {
                 value: rv.value
             })
         })
-        log.info("Report Values: ",reportVals)
+        log.info("Report Values: ", reportVals)
         await Report.update({ remarks: data.remarks }, {
             where: {
-              id: data.report_id
+                id: data.report_id
             },
-            transaction:t
-          });
-        await ReportValue.bulkCreate(reportVals, { updateOnDuplicate: ["value"], transaction:t })
+            transaction: t
+        });
+        await ReportValue.bulkCreate(reportVals, { updateOnDuplicate: ["value"], transaction: t })
         t.commit();
         return getReportParameters(data.report_id)
     } catch (error) {
         t.rollback()
         log.error(error)
-        log.error("Error while editing report: ", error)
-        return response(status.FAILURE, error, null)
+        log.error(`Error while editing report: ${error}`)
+        return response(consts.STATUS_FAILURE, error, null)
     }
 
 }
@@ -221,10 +234,10 @@ const saveReportPdfFileName = async (fileName, reportID) => {
                 id: reportID
             }
         })
-        return response(status.SUCCESS, null, null)
+        return response(consts.STATUS_SUCCESS, null, null)
     } catch (error) {
-        log.error("Error while saving report pdf filename: ",error)
-        return response(status.FAILURE, error, null)
+        log.error("Error while saving report pdf filename: ", error)
+        return response(consts.STATUS_FAILURE, error, null)
     }
 
 }
@@ -234,10 +247,10 @@ const toggleReportStatus = async (currentReportStatus, reportID) => {
         const report = await Report.findByPk(reportID)
         report.completed = !currentReportStatus
         await report.save()
-        return response(status.SUCCESS, null, null)
+        return response(consts.STATUS_SUCCESS, null, null)
     } catch (error) {
         log.error("Error while toggling report Status: ", error)
-        return response(status.FAILURE, error, null)
+        return response(consts.STATUS_FAILURE, error, null)
     }
 }
 
@@ -251,6 +264,8 @@ module.exports = {
     getReportParameters,
     editReport,
     saveReportPdfFileName,
-    status,
-    toggleReportStatus
+    toggleReportStatus,
+    setupModels,
+    init,
+    setupDatabase
 }

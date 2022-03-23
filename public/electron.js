@@ -2,22 +2,15 @@ const { app, BrowserWindow, ipcMain } = require('electron')
 const path = require('path')
 const isDev = require('electron-is-dev');
 const fs = require('fs')
-const sequelize = require('./src/Database/dbConnection')
-const databaseService = require('./src/Services/databaseService')
 const pdfService = require('./src/Services/pdfService');
-const webService = require('./src/Services/webService')
-const storage =require('./src/Services/localStorage');
+const storage = require('./src/Services/localStorage');
 const consts = require('./src/Constants/Constants')
 const { dialog } = require('electron')
 const { autoUpdater } = require("electron-updater")
-const log = require('electron-log');
-log.transports.remote.level = 'info';
-log.transports.remote.url = 'http://localhost:5000/logs'
-log.transports.remote.requestOptions={
-    auth:"agfghf"
-}
-const config= require('./config.json');
-log.info("API KEY IS: ",config.API_KEY)
+const databaseService = require('./src/Services/databaseService')
+const log = require('./src/Services/log');
+const sqlite3= require('sqlite3')
+const {Sequelize}= require('sequelize')
 
 let win;
 function createWindow() {
@@ -67,20 +60,65 @@ const createStorageDirectory = () => {
 
 
 app.whenReady().then(async () => {
-    createWindow()
-    try {
-        await sequelize.authenticate();
-        log.info("Successfully connected to database")
-    } catch (err) {
-        log.error(err)
+    // Create the storage directory 
+    createStorageDirectory()
+    
+    // Configure database
+    let sequelize
+    const dbFile = path.join(app.getPath('documents'), 'PathLabLite', 'labTest.db')
+    if (!fs.existsSync(dbFile)) {
+        new sqlite3.Database(dbFile, async(err) => {
+            if (err) {
+                return log.error(err);
+            }
+            log.info("labTest.db does not exists, created a new one file")
+            sequelize = new Sequelize({
+                dialect: 'sqlite',
+                storage: dbFile,
+                logging: msg => log.debug(msg),
+                define: {
+                    freezeTableName: true
+                }
+            });
+            databaseService.init(sequelize)
+            databaseService.setupModels()
+            await sequelize.sync({ force: true });
+            databaseService.setupDatabase();
+            createWindow()
+            // try {
+            //     await sequelize.authenticate();
+            //     log.info("SuccessfcreateWindow()createWindow()ully connected to database")
+            // } catch (err) {
+            //     log.error(err)
+            // }
+        });
+    } else {
+        log.info("labTest.db exists.")
+        sequelize = new Sequelize({
+            dialect: 'sqlite',
+            storage: dbFile,
+            logging: msg => log.debug(msg),
+            define: {
+                freezeTableName: true
+            }
+        });
+        databaseService.init(sequelize)
+        databaseService.setupModels()
+        createWindow()
     }
+    
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
             createWindow()
         }
     })
-    createStorageDirectory()
-    autoUpdater.checkForUpdatesAndNotify();
+
+    try {
+        autoUpdater.checkForUpdatesAndNotify();
+    } catch (error) {
+        log.error(`AutoUpdater error: ${error}`)
+    }
+
 })
 
 app.on('window-all-closed', () => {
@@ -92,7 +130,7 @@ app.on('window-all-closed', () => {
 
 
 // API interaction
-const response=(status, error, data)=>{
+const response = (status, error, data) => {
     return {
         status,
         error,
@@ -151,8 +189,8 @@ ipcMain.handle('editReport', async (event, data) => {
         //Send an error response to user
         return reportData
     } else {
-        const labSettings= storage.getLabDetails();
-        const newReportData = { ...reportData.data, signature: path.join(signaturesPath, 'signature.jpg'), labDetails: labSettings}
+        const labSettings = storage.getLabDetails();
+        const newReportData = { ...reportData.data, signature: path.join(signaturesPath, 'signature.jpg'), labDetails: labSettings }
         const reportPdf = await pdfService.printPDF(reportsPath, pdfService.TYPE_REPORT, newReportData)
         if (reportPdf.status === "SUCCESS") {
             const sd = await databaseService.saveReportPdfFileName(reportPdf.fileName, newReportData.id)
@@ -196,7 +234,7 @@ ipcMain.handle('toggleReportStatus', async (event, data) => {
     }
 })
 
-ipcMain.handle('uploadFile', async (event, data)=>{
+ipcMain.handle('uploadFile', async (event, data) => {
     try {
         const result = await dialog.showOpenDialog(win, {
             properties: ['openFile',],
@@ -210,11 +248,11 @@ ipcMain.handle('uploadFile', async (event, data)=>{
     }
 })
 
-ipcMain.handle('setLabDetails', async (event, data)=>{
+ipcMain.handle('setLabDetails', async (event, data) => {
     try {
-        let bannerFilePath=null;
-        if(data.labBanner){
-            bannerFilePath=path.join(storageDir,"lab_banner"+path.extname(data.labBanner))
+        let bannerFilePath = null;
+        if (data.labBanner) {
+            bannerFilePath = path.join(storageDir, "lab_banner" + path.extname(data.labBanner))
             fs.copyFileSync(data.labBanner, bannerFilePath)
         }
         storage.setLabDetails(data.name, data.address, data.contactNumbers, data.email, bannerFilePath)
@@ -225,11 +263,11 @@ ipcMain.handle('setLabDetails', async (event, data)=>{
     }
 })
 
-ipcMain.handle('getLabDetails', async (event, data)=>{
+ipcMain.handle('getLabDetails', async (event, data) => {
     try {
-        const labSettings= storage.getLabDetails();
+        const labSettings = storage.getLabDetails();
         return response(consts.STATUS_SUCCESS, null, labSettings)
-        
+
     } catch (error) {
         return response(consts.STATUS_FAILURE, error, null)
     }

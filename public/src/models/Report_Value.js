@@ -1,19 +1,18 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../Database/dbConnection');
-const Report = require('./Report');
-const TestParameter= require('./Test_Parameter');
 
-const ReportValue = sequelize.define('ReportValue', {
-    value:{
-        type:DataTypes.STRING,
-        defaultValue: ""
-    }
-}, {
-    // Other model options go here
-});
-ReportValue.sync()
+const ReportValue = (sequelize, association) => {
+    const reportValue= sequelize.define('ReportValue', {
+        value: {
+            type: DataTypes.STRING,
+            defaultValue: ""
+        }
+    }, {
+        // Other model options go here
+    });
+    association.Report.belongsToMany(association.TestParameter, { through: reportValue });
+    association.TestParameter.belongsToMany(association.Report, { through: reportValue });
+    return reportValue
 
-Report.belongsToMany(TestParameter, { through: ReportValue });
-TestParameter.belongsToMany(Report, { through: ReportValue });
+}
 
 module.exports = ReportValue
