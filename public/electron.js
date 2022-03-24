@@ -11,6 +11,7 @@ const databaseService = require('./src/Services/databaseService')
 const log = require('./src/Services/log');
 const sqlite3= require('sqlite3')
 const {Sequelize}= require('sequelize')
+const webService= require('./src/Services/webService')
 
 let win;
 function createWindow() {
@@ -69,13 +70,13 @@ app.whenReady().then(async () => {
     if (!fs.existsSync(dbFile)) {
         new sqlite3.Database(dbFile, async(err) => {
             if (err) {
-                return log.error(err);
+                return log.error(`Error occured in creating database: ${err}`);
             }
             log.info("labTest.db does not exists, created a new one file")
             sequelize = new Sequelize({
                 dialect: 'sqlite',
                 storage: dbFile,
-                logging: msg => log.debug(msg),
+                logging: msg => log.silly(msg),
                 define: {
                     freezeTableName: true
                 }
@@ -97,7 +98,7 @@ app.whenReady().then(async () => {
         sequelize = new Sequelize({
             dialect: 'sqlite',
             storage: dbFile,
-            logging: msg => log.debug(msg),
+            logging: msg => log.silly(msg),
             define: {
                 freezeTableName: true
             }
@@ -185,7 +186,7 @@ ipcMain.handle('getReportParameters', async (event, reportID) => {
 
 ipcMain.handle('editReport', async (event, data) => {
     const reportData = await databaseService.editReport(data)
-    if (reportData.status === databaseService.status.FAILURE) {
+    if (reportData.status === consts.FAILURE) {
         //Send an error response to user
         return reportData
     } else {
@@ -193,8 +194,7 @@ ipcMain.handle('editReport', async (event, data) => {
         const newReportData = { ...reportData.data, signature: path.join(signaturesPath, 'signature.jpg'), labDetails: labSettings }
         const reportPdf = await pdfService.printPDF(reportsPath, pdfService.TYPE_REPORT, newReportData)
         if (reportPdf.status === "SUCCESS") {
-            const sd = await databaseService.saveReportPdfFileName(reportPdf.fileName, newReportData.id)
-            return sd;
+            return await databaseService.saveReportPdfFileName(reportPdf.fileName, newReportData.id)
         } else {
             return {
                 status: "FAILURE",
@@ -217,11 +217,19 @@ ipcMain.handle('toggleReportStatus', async (event, data) => {
     const statusChanged = await databaseService.toggleReportStatus(data.currentReportStatus, data.reportID);
     if (statusChanged.status === "SUCCESS") {
         if (!data.currentReportStatus) {
-            // Upload PDF and message the patient
+            // Status changed to done so upload PDF and message the patient
+            const report= statusChanged.data
+            log.debug(report)
+            webService.uploadReport(
+                report.Invoice.Patient.name, 
+                report.Invoice.Patient.contact_number,
+                report.Test_Detail.name,
+                path.join(reportsPath, report.report_file_path) 
+            )
         }
         return {
             status: "SUCCESS",
-            error: "Report status updated, pdf upload and SMS will begin in background",
+            error: "Report status updated, pdf upload and SMS to patient will begin in background",
             data: null
         }
     } else {
@@ -258,7 +266,7 @@ ipcMain.handle('setLabDetails', async (event, data) => {
         storage.setLabDetails(data.name, data.address, data.contactNumbers, data.email, bannerFilePath)
         return response(consts.STATUS_SUCCESS, null, null)
     } catch (error) {
-        log.error(error)
+        log.error(`Error in setting lab details: ${error}`)
         return response(consts.STATUS_FAILURE, error, null)
     }
 })

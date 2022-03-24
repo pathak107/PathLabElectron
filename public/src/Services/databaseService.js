@@ -35,7 +35,7 @@ const setupModels = () => {
     Invoice = InvoiceModel(sequelize, { Report })
     Patient = PatientModel(sequelize, { Invoice })
     ReportValue = ReportValueModel(sequelize, { TestParameter, Report })
-    log.debug(TestDetails)
+    log.info("Models setup completed successfully")
 }
 
 const setupDatabase = () => {
@@ -43,13 +43,13 @@ const setupDatabase = () => {
         const queryInterface = sequelize.getQueryInterface();
         queryInterface.bulkInsert('Test_Details', rawData.TestDetailsData);
     } catch (error) {
-        log.error(error)
+        log.error(`Database setup failed: ${error}`)
     }
 
 }
 const addTest = async (name, cost, description) => {
     try {
-        log.info("Adding test Data: ", name, cost, description);
+        log.info(`Adding test Data: ${name}, ${cost}, ${description}`);
         await TestDetails.create({ name, cost, description });
         return response(consts.STATUS_SUCCESS, null, null)
     } catch (error) {
@@ -74,7 +74,7 @@ const getTestParameters = async (testID) => {
         const test = await TestDetails.findOne({ where: { id: testID }, include: TestParameter })
         return response(consts.STATUS_SUCCESS, null, test.get({ plain: true }).Test_Parameters)
     } catch (error) {
-        log.error("Error in getting test parameters: ", error)
+        log.error(`Error in getting test parameters: ${error}`)
         return response(consts.STATUS_FAILURE, error, [])
     }
 }
@@ -84,7 +84,7 @@ const addTestParameter = async (name, unit, range, description, testID) => {
         await TestParameter.create({ name, unit, range, description, TestDetailId: testID })
         return response(consts.STATUS_SUCCESS, null, null)
     } catch (error) {
-        log.error("Error in adding Test Parameter: ", error)
+        log.error(`Error in adding Test Parameter: ${error}`)
         return response(consts.STATUS_FAILURE, error, null)
     }
 
@@ -104,6 +104,7 @@ const generateBill = async (data) => {
             },
             transaction: t,
         });
+        log.info(`Patient created: ${created}`)
         const invoice = await Invoice.create({
             total_amount: data.total_amount,
             discount: data.discount,
@@ -141,8 +142,7 @@ const generateBill = async (data) => {
                 }
             })
         })
-        const reportV = await ReportValue.bulkCreate(reportValues, { transaction: t });
-        log.info("Report Values: ", reportV)
+        await ReportValue.bulkCreate(reportValues, { transaction: t });
 
         const bill = {
             ...data,
@@ -156,7 +156,7 @@ const generateBill = async (data) => {
         t.commit();
         return response(consts.STATUS_SUCCESS, null, bill)
     } catch (error) {
-        log.error("Error in generating bill: ", error);
+        log.error(`Error in generating bill: ${error}`);
         t.rollback();
         return response(consts.STATUS_FAILURE, error, null)
     }
@@ -172,7 +172,7 @@ const getReports = async () => {
         })
         return response(consts.STATUS_SUCCESS, null, reports);
     } catch (error) {
-        log.error("Error in getting reports: ", error)
+        log.error(`Error in getting reports: ${error}`)
         return response(consts.STATUS_FAILURE, error, reports)
     }
 }
@@ -191,13 +191,13 @@ const getReportParameters = async (reportID) => {
         })
         return response(consts.STATUS_SUCCESS, null, reportPara.get({ plain: true }))
     } catch (error) {
-        log.error("Error while getting report parameters: ", error)
+        log.error(`Error while getting report parameters: ${error}`)
         return response(consts.STATUS_FAILURE, error, null)
     }
 }
 
 const editReport = async (data) => {
-    log.info("Edited data for report: ", data)
+    log.info(`Edited data for report: ${data}`)
     const t = await sequelize.transaction();
     const reportVals = []
     try {
@@ -208,7 +208,6 @@ const editReport = async (data) => {
                 value: rv.value
             })
         })
-        log.info("Report Values: ", reportVals)
         await Report.update({ remarks: data.remarks }, {
             where: {
                 id: data.report_id
@@ -220,7 +219,6 @@ const editReport = async (data) => {
         return getReportParameters(data.report_id)
     } catch (error) {
         t.rollback()
-        log.error(error)
         log.error(`Error while editing report: ${error}`)
         return response(consts.STATUS_FAILURE, error, null)
     }
@@ -236,7 +234,7 @@ const saveReportPdfFileName = async (fileName, reportID) => {
         })
         return response(consts.STATUS_SUCCESS, null, null)
     } catch (error) {
-        log.error("Error while saving report pdf filename: ", error)
+        log.error(`Error while saving report pdf filename: ${error}`)
         return response(consts.STATUS_FAILURE, error, null)
     }
 
@@ -244,12 +242,20 @@ const saveReportPdfFileName = async (fileName, reportID) => {
 
 const toggleReportStatus = async (currentReportStatus, reportID) => {
     try {
-        const report = await Report.findByPk(reportID)
+        const report = await Report.findByPk(reportID, {
+            include: [
+                TestDetails,
+                {
+                    model: Invoice,
+                    include: Patient,
+                }
+            ]
+        })
         report.completed = !currentReportStatus
         await report.save()
-        return response(consts.STATUS_SUCCESS, null, null)
+        return response(consts.STATUS_SUCCESS, null, report.get({plain:true}))
     } catch (error) {
-        log.error("Error while toggling report Status: ", error)
+        log.error(`Error while toggling report Status: ${error}`)
         return response(consts.STATUS_FAILURE, error, null)
     }
 }

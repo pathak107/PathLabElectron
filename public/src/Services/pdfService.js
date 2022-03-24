@@ -10,8 +10,8 @@ const TYPE_BILL="BILL"
 const printPDF= async (storagePath, type, data)=>{
     let fileName="";
     let templatePath;
-    log.info("Data to be written into PDF: ", data);
-    log.info("Type of data = ", type)
+    log.info(`Data to be written into PDF: ${data}`, data);
+    log.info(`Type of data = ${type}`)
     if(type===TYPE_REPORT){
         const createdDate= new Date(data.createdAt)
         const updatedDate= new Date(data.updatedAt)
@@ -26,8 +26,8 @@ const printPDF= async (storagePath, type, data)=>{
         fileName = `BillB${data.invoice_id}-${Date.now()}.pdf`
     }
 
-    log.info("Template Path: ", templatePath)
-    log.info("FileName : ", fileName)
+    log.info(`Template Path: ${templatePath}`)
+    log.info(`FileName : ${fileName}`)
 
     try {
         //Convert ejs to html and fill the data
@@ -63,7 +63,7 @@ const printPDF= async (storagePath, type, data)=>{
             fileName
         }
     } catch (error) {
-        log.error("Error in generating PDF: ", error)
+        log.error(`Error in generating PDF: ${error}`)
         return {
             status: 'FAILURE',
             error,
@@ -76,10 +76,10 @@ const printPDF= async (storagePath, type, data)=>{
 const launchPDFWindow = (filepath, filename) => {
     try {
         const win = new BrowserWindow({ width: 1000, height: 800, webPreferences:{nativeWindowOpen:true} });
-        log.info("Launching PDF at path: ", path.join(filepath, filename))
+        log.info(`Launching PDF at path: ${path.join(filepath, filename)}`)
         win.loadURL("file://" + path.join(filepath, filename));
     } catch (error) {
-        log.error("Error in launching PDF: ",error)
+        log.error(`Error in launching PDF: ${error}`)
     }
 
 }
