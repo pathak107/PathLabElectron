@@ -1,6 +1,6 @@
 {
     "name": "path-lab-lite",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "Path-lab-lite is an electron app for all the pathology lab test needs.",
     "author": "Shubham Pathak",
     "private": true,
