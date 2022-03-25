@@ -6,6 +6,9 @@ const TestDetails = (sequelize, association) => {
       type: DataTypes.STRING,
       allowNull: false
     },
+    mode: {
+      type: DataTypes.STRING, // like blood sample or throat swab
+    },
     description: {
       type: DataTypes.TEXT,
     },

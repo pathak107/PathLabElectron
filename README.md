@@ -23,6 +23,11 @@ PathLabLite is a desktop application for all the pathology lab tests needs.
 - Change the menu items for browser window.
 
 ## How to use
+### Makefile Targets
+1. `make build` builds and the application in /builds/dist directory for linux
+2. `make publish` buils the application for windows by running a docker container.
+3. `make clean` will delete the build folder
+
 ### Development
 1. Clone the repo and install the required npm dependencies using `npm install` in both the root directory and public directory.
 2. All the react code is in ./src and electron code is in ./public/src
@@ -40,3 +45,12 @@ PathLabLite is a desktop application for all the pathology lab tests needs.
 4. Run the following command to run a docker container with volume attached as your current directory. Remember to pass github access token `GH_TOKEN=<your token>` if not present as env variable on your system.
 `sudo docker run --rm -ti --env ELECTRON_CACHE="/root/.cache/electron"  --env ELECTRON_BUILDER_CACHE="/root/.cache/electron-builder" --env GH_TOKEN=$GH_TOKEN -v ${PWD}:/project  -v ${PWD##*/}-node-modules:/project/node_modules  -v ~/.cache/electron:/root/.cache/electron  -v ~/.cache/electron-builder:/root/.cache/electron-builder  electronuserland/builder:wine`
 5. Once inside the container run `npm run publish`. This will build the app and produce a github release draft.
+
+### Task Notes:
+1. Implement report and bill template css properly
+2. Implement Patiet and Invoice section
+3. Menu items
+4. Preview of signature and banner
+5. Validations everywhere in react
+6. Auto Update events implementation
+7. Initial data seed for raw data

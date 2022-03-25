@@ -1,6 +1,6 @@
 const { DataTypes } = require('sequelize');
 
-const Report = (sequelize)=> sequelize.define('Report', {
+const Report = (sequelize) => sequelize.define('Report', {
     referred_by: {
         type: DataTypes.STRING,
     },
@@ -14,7 +14,7 @@ const Report = (sequelize)=> sequelize.define('Report', {
     remarks: {
         type: DataTypes.TEXT,
     },
-    
+
 }, {
     // Other model options go here
 });

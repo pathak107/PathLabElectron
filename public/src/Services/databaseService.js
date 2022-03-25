@@ -6,6 +6,7 @@ const TestDetailsModel = require('../models/Test_Details');
 const InvoiceModel = require('../models/Invoice');
 const PatientModel = require('../models/Patient');
 const ReportValueModel = require('../models/Report_Value')
+const DoctorModel = require('../models/Doctor')
 const rawData = require('../RawData/RawData')
 
 const response = (status, error, data) => {
@@ -22,6 +23,7 @@ let Patient
 let Invoice
 let Report
 let ReportValue
+let Doctor
 let sequelize
 
 const init = (sq) => {
@@ -31,6 +33,7 @@ const init = (sq) => {
 const setupModels = () => {
     TestParameter = TestParameterModel(sequelize)
     Report = ReportModel(sequelize)
+    Doctor = DoctorModel(sequelize, { Report })
     TestDetails = TestDetailsModel(sequelize, { TestParameter, Report })
     Invoice = InvoiceModel(sequelize, { Report })
     Patient = PatientModel(sequelize, { Invoice })
@@ -153,6 +156,9 @@ const generateBill = async (data) => {
 
         }
 
+        invoice.bill_cache=JSON.stringify(bill)
+        await invoice.save({ transaction: t })
+
         t.commit();
         return response(consts.STATUS_SUCCESS, null, bill)
     } catch (error) {
@@ -186,7 +192,8 @@ const getReportParameters = async (reportID) => {
                 {
                     model: Invoice,
                     include: Patient,
-                }
+                },
+                Doctor
             ]
         })
         return response(consts.STATUS_SUCCESS, null, reportPara.get({ plain: true }))
@@ -208,7 +215,8 @@ const editReport = async (data) => {
                 value: rv.value
             })
         })
-        await Report.update({ remarks: data.remarks }, {
+        log.debug("doctorID:", data.doctor_id)
+        await Report.update({ remarks: data.remarks, DoctorId: data.doctor_id? data.doctor_id: null }, {
             where: {
                 id: data.report_id
             },
@@ -253,13 +261,66 @@ const toggleReportStatus = async (currentReportStatus, reportID) => {
         })
         report.completed = !currentReportStatus
         await report.save()
-        return response(consts.STATUS_SUCCESS, null, report.get({plain:true}))
+        return response(consts.STATUS_SUCCESS, null, report.get({ plain: true }))
     } catch (error) {
         log.error(`Error while toggling report Status: ${error}`)
         return response(consts.STATUS_FAILURE, error, null)
     }
 }
 
+
+const getDoctors = async () => {
+    try {
+        const doctors = await Doctor.findAll({raw: true})
+        return response(consts.STATUS_SUCCESS, null, doctors)
+    } catch (error) {
+        log.error(`Error in getting doctors: ${error}`)
+        return response(consts.STATUS_FAILURE, error, null)
+    }
+}
+
+const createDoctor = async (data) => {
+    let doctorData = {
+        name: data.name,
+        field: data.field,
+        degree: data.degree,
+    }
+    doctorData = data.contact_number ? { ...doctorData, contact_number: data.contact_number }: doctorData
+    doctorData = data.address ? { ...doctorData, address: data.address }: doctorData
+    doctorData = data.email ? { ...doctorData, email: data.address }: doctorData
+    doctorData = data.signature_file_path ? { ...doctorData, signature_file_path: data.signature_file_path }: doctorData
+
+    try {
+        await Doctor.create(doctorData)
+        return response(consts.STATUS_SUCCESS,  null, null)
+    } catch (error) {
+        log.error(`Error in creating doctor: ${error}`)
+        return response(consts.STATUS_FAILURE, error, null)
+    }
+}
+
+const updateDoctor= async (data)=>{
+    let doctorData = {
+        name: data.name,
+        field: data.field,
+        degree: data.degree,
+        contact_number: data.contact_number,
+        address: data.address,
+        email: data.email,
+        signature_file_path: data.signature_file_path
+    }
+    try {
+        await Doctor.update(doctorData, {
+            where: {
+                id: data.id
+            }
+        })
+        return response(consts.STATUS_SUCCESS, null, null)
+    } catch (error) {
+        log.error(`Error in updating doctor: ${error}`)
+        return response(consts.STATUS_FAILURE, error, null)
+    }
+}
 module.exports = {
     addTest,
     getTests,
@@ -272,6 +333,9 @@ module.exports = {
     saveReportPdfFileName,
     toggleReportStatus,
     setupModels,
+    getDoctors,
+    createDoctor,
+    updateDoctor,
     init,
     setupDatabase
 }

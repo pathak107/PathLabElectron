@@ -36,7 +36,7 @@ function NavigationPane() {
                             <Td><Box onClick={() => navigate('/tests')} as='button'>Tests</Box></Td>
                         </Tr>
                         <Tr>
-                            <Td><Box onClick={() => navigate('/doctors')} as='button'>Doctors</Box></Td>
+                            <Td><Box onClick={() => navigate('/doctor')} as='button'>Doctors</Box></Td>
                         </Tr>
                         <Tr>
                             <Td><Box onClick={() => navigate('/settings')} as='button'>Settings</Box></Td>

@@ -14,6 +14,10 @@ const Invoice = (sequelize, association)=> {
       type: DataTypes.DOUBLE,
       defaultValue:0
     },
+    total_tax: {
+      type: DataTypes.DOUBLE,
+      defaultValue:0
+    },
     bill_cache: {
       type: DataTypes.STRING, // To store the json value of bill to avoid joining of multiple tables
     },

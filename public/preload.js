@@ -21,6 +21,9 @@ contextBridge.exposeInMainWorld(
         toggleReportStatus: (data)=> ipcRenderer.invoke('toggleReportStatus', data),
         uploadFile: (data)=>ipcRenderer.invoke('uploadFile', data),
         setLabDetails: (data)=> ipcRenderer.invoke('setLabDetails', data),
-        getLabDetails: ()=> ipcRenderer.invoke('getLabDetails')
+        getLabDetails: ()=> ipcRenderer.invoke('getLabDetails'),
+        getDoctors: ()=> ipcRenderer.invoke('getDoctors'),
+        createDoctor: (data)=> ipcRenderer.invoke('createDoctor', data),
+        updateDoctor:(data)=> ipcRenderer.invoke('updateDoctor', data)
     }
 );

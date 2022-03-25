@@ -13,6 +13,11 @@ const sqlite3= require('sqlite3')
 const {Sequelize}= require('sequelize')
 const webService= require('./src/Services/webService')
 
+//Auto updater logging configureation
+autoUpdater.logger = log
+autoUpdater.logger.transports.file.level = "info"
+
+
 let win;
 function createWindow() {
     let preloadScriptPath;
@@ -191,7 +196,7 @@ ipcMain.handle('editReport', async (event, data) => {
         return reportData
     } else {
         const labSettings = storage.getLabDetails();
-        const newReportData = { ...reportData.data, signature: path.join(signaturesPath, 'signature.jpg'), labDetails: labSettings }
+        const newReportData = { ...reportData.data, labDetails: labSettings }
         const reportPdf = await pdfService.printPDF(reportsPath, pdfService.TYPE_REPORT, newReportData)
         if (reportPdf.status === "SUCCESS") {
             return await databaseService.saveReportPdfFileName(reportPdf.fileName, newReportData.id)
@@ -278,5 +283,39 @@ ipcMain.handle('getLabDetails', async (event, data) => {
 
     } catch (error) {
         return response(consts.STATUS_FAILURE, error, null)
+    }
+})
+
+ipcMain.handle('getDoctors', async (event, data) => {
+    return await databaseService.getDoctors()
+})
+
+ipcMain.handle('createDoctor', async (event, data) => {
+    try {
+        let signatureFilePath = null;
+        if (data.signature_file_path) {
+            signatureFilePath = path.join(signaturesPath, `signD-${data.name}${Date.now()}` + path.extname(data.signature_file_path))
+            fs.copyFileSync(data.signature_file_path, signatureFilePath)
+            data.signature_file_path=signatureFilePath
+        }
+        return await databaseService.createDoctor(data)
+    } catch (error) {
+        log.error(`Error in creating doctor: ${error}`)  
+        return response(consts.STATUS_FAILURE, error, null)    
+    }
+})
+
+ipcMain.handle('updateDoctor', async (event, data) => {
+    try {
+        let signatureFilePath = null;
+        if (data.signature_file_path && !fs.existsSync(data.signature_file_path)) {
+            signatureFilePath = path.join(signaturesPath, `signD-${data.name}${Date.now()}` + path.extname(data.signature_file_path))
+            fs.copyFileSync(data.signature_file_path, signatureFilePath)
+            data.signature_file_path=signatureFilePath
+        }
+        return await databaseService.updateDoctor(data)
+    } catch (error) {
+        log.error(`Error in creating doctor: ${error}`)  
+        return response(consts.STATUS_FAILURE, error, null)    
     }
 })

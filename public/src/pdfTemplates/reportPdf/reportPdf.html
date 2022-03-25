@@ -55,11 +55,14 @@
     background: url(dimension.png);
   }
 
-  .banner {
+  .banner{
     border-top: 1px solid #5D6975;
     border-bottom: 1px solid #5D6975;
     text-align: center;
     margin: 0 0 0 0;
+  }
+  .banner .labName{
+      font-size: large;
   }
 
   br {
@@ -159,47 +162,22 @@
 <body>
   <header class="clearfix">
     <div class="banner">
-      <%if(data.labDetails.labBanner){%>
-        <img src="<%=data.labDetails.labBanner%>">
-        <%}else{%>
-          <h2>
-            <%=data.labDetails.name%>
-          </h2>
-          <h2>
-            <%=data.labDetails.address%>
-          </h2>
-          <h2>
-            <%=data.labDetails.contactNumbers%>
-          </h2>
-          <h2>
-            <%=data.labDetails.email%>
-          </h2>
-          <%}%>
+        <h2 class="labName">Some Lab Name</h2>
+        <h2 class="address">C-9/3, Nawada extension, Uttam Nagar, New Delhi- 110059</h2>
+        <h2 class="contactNum">+91 813180208, +91 813180208,+91 813180208</h2>
+        <h2 class="email">smartshubhampathak@gnail.com</h2>
+      <%}%>
     </div>
-    <h1>
-      <%=data.Test_Detail.name%> (R#<%=data.id%>)
-    </h1>
+    <h1><%=data.Test_Detail.name%> (R#<%=data.id%>)</h1>
     <div id="company" class="clearfix">
-      <div><span>TEST DATE:</span>
-        <%=data.createdAt%>
-      </div>
-      <div><span>REPORT DATE:</span>
-        <%=data.updatedAt%>
-      </div>
+      <div><span>TEST DATE:</span> <%=data.createdAt%></div>
+      <div><span>REPORT DATE:</span> <%=data.updatedAt%></div>
     </div>
     <div id="project">
-      <div><span>PATIENT</span>
-        <%=data.Invoice.Patient.name%> (P#<%=data.Invoice.Patient.id%>)
-      </div>
-      <div><span>CONTACT</span>
-        <%=data.Invoice.Patient.contact_number%>
-      </div>
-      <div><span>AGE & SEX</span>
-        <%=data.Invoice.Patient.age%>, <%=data.Invoice.Patient.gender%>
-      </div>
-      <div><span>REFERRED BY</span>
-        <%=data.referred_by%>
-      </div>
+      <div><span>PATIENT</span> <%=data.Invoice.Patient.name%> (P#<%=data.Invoice.Patient.id%>)</div>
+      <div><span>CONTACT</span> <%=data.Invoice.Patient.contact_number%></div>
+      <div><span>AGE & SEX</span> <%=data.Invoice.Patient.age%>, <%=data.Invoice.Patient.gender%></div>
+      <div><span>REFERRED BY</span> <%=data.referred_by%></div>
     </div>
   </header>
   <main>
@@ -215,20 +193,12 @@
       <tbody>
         <%for(let i=0; i< data.Test_Parameters.length; i++){ %>
           <tr>
-            <td>
-              <%=data.Test_Parameters[i].name%>
-            </td>
-            <td>
-              <%=data.Test_Parameters[i].ReportValue.value%>
-            </td>
-            <td>
-              <%=data.Test_Parameters[i].unit%>
-            </td>
-            <td>
-              <%=data.Test_Parameters[i].range%>
-            </td>
+            <td><%=data.Test_Parameters[i].name%></td>
+            <td><%=data.Test_Parameters[i].ReportValue.value%></td>
+            <td> <%=data.Test_Parameters[i].unit%></td>
+            <td> <%=data.Test_Parameters[i].range%></td>
           </tr>
-          <%}%>
+        <%}%>
       </tbody>
     </table>
     <div id="notices">
@@ -238,31 +208,25 @@
     <div id="notices">
       <div>DECRIPTION:</div>
       <%for(let i=0; i< data.Test_Parameters.length; i++){ %>
-        <div class="notice">
-          <%=data.Test_Parameters[i].name%>: <%=data.Test_Parameters[i].description%>
-        </div>
-        <%}%>
+        <div class="notice"><%=data.Test_Parameters[i].name%>: <%=data.Test_Parameters[i].description%></div>
+      <%}%>
     </div>
-    <hr />
+    <hr/>
     <div id="notices">
       <div>NOTE:</div>
-      <div class="notice">
-        <%=data.Test_Detail.description%>
-      </div>
+      <div class="notice"><%=data.Test_Detail.description%></div>
     </div>
-    <% if(data.Doctor){ %>
-      <div id="company" class="clearfix">
-        <div><%=data.Doctor.name%></div>
-        <div><%=data.Doctor.degree%></div>
-        <div><%=data.Doctor.field%></div>
-        <%if(data.Doctor.signature_file_path){%>
-          <div id="logo">
-            <img src="<%=data.Doctor.signature_file_path%>">
-          </div>
-        <%}%>
-      </div>
-    <%}%>
-
+    <div id="company" class="clearfix">
+      <div>Dr. Some Name</div>
+      <div>MBBS, MD</div>
+      <div>Microbiologist</div>
+      <% if(data.signature){ %>
+        <div id="logo">
+          <img src="<%=data.signature%>">
+        </div>
+      <%}%>
+    </div>
+    
   </main>
   <footer>
     This is a computer generated report.

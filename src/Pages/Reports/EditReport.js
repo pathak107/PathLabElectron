@@ -17,8 +17,8 @@ import {
     Textarea,
     Text,
     Spinner,
-    Link
-
+    Select,
+    Link,
 } from "@chakra-ui/react";
 import { ExternalLinkIcon } from '@chakra-ui/icons'
 import { useContext, useEffect, useState } from 'react'
@@ -40,8 +40,10 @@ function EditReport() {
         status: false,
         referred_by: "",
         report_values: [],
-        remarks: ""
+        remarks: "",
+        doctor_id: null,
     });
+    const [doctors, setDoctors] = useState([])
     const [isLoading, setIsLoading] = useState(false);
 
     const getReportParameters = async () => {
@@ -71,10 +73,21 @@ function EditReport() {
                 status: rp.data.completed,
                 referred_by: rp.data.referred_by,
                 report_values: reportValues,
-                remarks: rp.data.remarks
+                remarks: rp.data.remarks,
+                doctor_id: rp.data.DoctorId
             })
 
         }
+        setIsLoading(false)
+    }
+
+    const getDoctors = async () => {
+        setIsLoading(true)
+        const docs = await window.api.getDoctors()
+        if (docs.status === "FAILURE") {
+            diaCtx.actions.showDialog("Error", `Oops! Error in getting list of all doctors. \n ${docs.error}`);
+        }
+        setDoctors(docs.data)
         setIsLoading(false)
     }
 
@@ -82,6 +95,7 @@ function EditReport() {
         let isApiSubscribed = true;
         if (isApiSubscribed) {
             getReportParameters()
+            getDoctors()
         }
         return () => {
             isApiSubscribed = false
@@ -171,8 +185,23 @@ function EditReport() {
                             </Table>
 
                             <FormControl>
+                                <FormLabel htmlFor="doctor">Doctor</FormLabel>
+                                <Select width='full' placeholder='Select Doctor'
+                                    onChange={(e) => {
+                                        const newReportData = { ...reportData }
+                                        newReportData.doctor_id = e.target.value
+                                        setReportData(newReportData)
+                                    }}
+                                    value={reportData.doctor_id}
+                                >
+                                    {doctors.map((doc) => {
+                                        return <option key={doc.id} value={doc.id}>{doc.name}</option>
+                                    })}
+                                </Select>
+                            </FormControl>
+                            <FormControl>
                                 <FormLabel htmlFor="remarks">Remarks/Feedback/Result</FormLabel>
-                                <ReactQuill 
+                                <ReactQuill
                                     value={reportData.remarks}
                                     placeholder="Remarks/Feedback/Result"
                                     onChange={(value) => {

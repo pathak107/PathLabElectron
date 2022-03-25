@@ -12,6 +12,7 @@ import { TestParaContextProvider } from "./Context/TestParaContext";
 import Reports from "./Pages/Reports/Reports";
 import EditReport from "./Pages/Reports/EditReport";
 import Settings from "./Pages/Settings/Settings";
+import EditDoctor from "./Pages/Doctors/EditDoctor";
 
 function App() {
   return (
@@ -22,8 +23,9 @@ function App() {
         <NavigationPane />
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/doctors" element={<Doctors />} />
-          <Route path="/doctors/newDoctor" element={<NewDoctor />} />
+          <Route path="/doctor" element={<Doctors />} />
+          <Route path="/doctor/newDoctor" element={<NewDoctor />} />
+          <Route path="/doctor/editDoctor/:docID" element={<EditDoctor/>} />
           
           <Route path="/tests" element={<TestDetails />} />
           <Route path="/tests/newTest" element={<NewTest />} />
