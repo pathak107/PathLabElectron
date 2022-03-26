@@ -169,10 +169,14 @@ const generateBill = async (data) => {
 }
 
 
-const getReports = async () => {
+const getReports = async (filter) => {
     const reports = [];
+    let queryString={ include: [{ model: Invoice, include: Patient }, { model: TestDetails }], order: [['updatedAt', 'DESC']]}
+    if(filter){
+        queryString={...queryString, where:{filter}}
+    }
     try {
-        const reportModels = await Report.findAll({ include: [{ model: Invoice, include: Patient }, { model: TestDetails }], order: [['updatedAt', 'DESC']], })
+        const reportModels = await Report.findAll(queryString)
         reportModels.forEach((reportModel) => {
             reports.push(reportModel.get({ plain: true }))
         })
@@ -243,6 +247,21 @@ const saveReportPdfFileName = async (fileName, reportID) => {
         return response(consts.STATUS_SUCCESS, null, null)
     } catch (error) {
         log.error(`Error while saving report pdf filename: ${error}`)
+        return response(consts.STATUS_FAILURE, error, null)
+    }
+
+}
+
+const saveBillPdfFileName = async (fileName, invoiceID) => {
+    try {
+        await Invoice.update({ bill_file_path: fileName }, {
+            where: {
+                id: invoiceID
+            }
+        })
+        return response(consts.STATUS_SUCCESS, null, null)
+    } catch (error) {
+        log.error(`Error while saving bill pdf filename: ${error}`)
         return response(consts.STATUS_FAILURE, error, null)
     }
 
@@ -321,6 +340,96 @@ const updateDoctor= async (data)=>{
         return response(consts.STATUS_FAILURE, error, null)
     }
 }
+
+const getInvoices= async (filter)=>{
+    let queryString={raw:true}
+    if (filter){
+        queryString={...queryString ,where: {filter}}
+    }
+    try {
+        const invoices = await Invoice.findAll(queryString)
+        invoices.forEach((bill)=>{
+            bill.bill_cache=JSON.parse(bill.bill_cache)
+        })
+        return response(consts.STATUS_SUCCESS, null, invoices)
+    } catch (error) {
+        log.error(`Error in getting list of invoice: ${error}`)
+        return response(consts.STATUS_FAILURE, error, null)
+    }
+}
+
+const getInvoice = async (invoice_id)=>{
+    try {
+        let invoice=await Invoice.findByPk(invoice_id)
+        invoice=invoice.get({plain:true})
+        invoice.bill_cache=JSON.parse(invoice.bill_cache)
+        return response(consts.STATUS_SUCCESS, null, invoice)
+    } catch (error) {
+        log.error(`Error in getting invoice: ${error}`)
+        return response(consts.STATUS_FAILURE, error, null)
+    }
+}
+
+const getPatients = async ()=>{
+    try {
+        let patients=await Patient.findAll({raw:true})
+        return response(consts.STATUS_SUCCESS, null, patients)
+    } catch (error) {
+        log.error(`Error in getting Patients: ${error}`)
+        return response(consts.STATUS_FAILURE, error, null)
+    }
+}
+
+const getPatientDetails= async (patient_id)=>{
+    try {
+        let patient=await Patient.findByPk(patient_id, {
+            include: [
+                {
+                    model:Invoice,
+                    include:Report
+                } 
+            ]
+        })
+        patient=patient.get({plain:true})
+        const reports=[]
+        patient.Invoices.forEach((inv)=>{
+            reports.push(...inv.Reports)
+        })
+        const patientDetails={
+            patient,
+            invoices:patient.Invoices,
+            reports
+
+        }
+        log.debug(patientDetails)
+        return response(consts.STATUS_SUCCESS, null, patientDetails)
+    } catch (error) {
+        log.error(`Error in getting Patient Details: ${error}`)
+        return response(consts.STATUS_FAILURE, error, null)
+    }
+}
+
+const updatePatient=async (data, patient_id)=>{
+    let patientData = {
+        name: data.name,
+        gender: data.gender,
+        age: data.age,
+        weight: data.weight,
+        email: data.email,
+    }
+    try {
+        await Patient.update(patientData, {
+            where: {
+                id: patient_id
+            }
+        })
+        return response(consts.STATUS_SUCCESS, null, null)
+    } catch (error) {
+        log.error(`Error in updating patient: ${error}`)
+        return response(consts.STATUS_FAILURE, error, null)
+    } 
+}
+
 module.exports = {
     addTest,
     getTests,
@@ -331,11 +440,17 @@ module.exports = {
     getReportParameters,
     editReport,
     saveReportPdfFileName,
+    saveBillPdfFileName,
     toggleReportStatus,
     setupModels,
     getDoctors,
     createDoctor,
     updateDoctor,
+    getInvoices,
+    getInvoice,
+    getPatients,
+    getPatientDetails,
+    updatePatient,
     init,
     setupDatabase
 }

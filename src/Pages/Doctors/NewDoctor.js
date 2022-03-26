@@ -111,8 +111,8 @@ function NewDoctor() {
                     </FormControl>
                     <FormControl>
                         <Button leftIcon={<ArrowUpIcon />} onClick={uploadSignature} colorScheme='gray'>Upload Signature</Button>
-                        <Box boxSize='sm'>
-                            <Image src={signature ? signature : 'None'} alt='Signature preview' />
+                        <Box boxSize='xs'>
+                            <Image src={signature? `media://${signature}`: "None"} alt='Signature preview' />
                         </Box>
                     </FormControl>
                     <Button isLoading={isLoading} colorScheme='gray' onClick={() => submitHandler()}>Submit</Button>

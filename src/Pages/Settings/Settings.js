@@ -9,11 +9,13 @@ import {
     Heading,
     HStack,
     Text,
+    Box,
+    Image
 } from "@chakra-ui/react";
 import { ArrowUpIcon } from '@chakra-ui/icons'
 import { useContext, useState } from 'react'
 import { AlertContext } from "../../Context/AlertContext";
-import {useEffect} from 'react';
+import { useEffect } from 'react';
 
 function Settings() {
     const diaCtx = useContext(AlertContext)
@@ -23,20 +25,19 @@ function Settings() {
     const [contactNumbers, setContactNumbers] = useState([]);
     const [singleContactNum, setSingleContactNum] = useState('');
     const [labBanner, setLabBanner] = useState(null);
-    const [currentLabBanner, setCurrentLabBanner]=useState(null);
     const [isLoading, setIsLoading] = useState(false);
 
-    const addContactNumber=()=>{
-        const newContactNums= [...contactNumbers];
+    const addContactNumber = () => {
+        const newContactNums = [...contactNumbers];
         newContactNums.push(singleContactNum)
         setContactNumbers(newContactNums);
     }
 
-    const uploadBanner=async ()=>{
-        const bannerFilePath= await window.api.uploadFile({
-            type:'image'
+    const uploadBanner = async () => {
+        const bannerFilePath = await window.api.uploadFile({
+            type: 'image'
         })
-        if(bannerFilePath.status==="FAILURE"){
+        if (bannerFilePath.status === "FAILURE") {
             diaCtx.actions.showDialog("Error", `Oops! looks like some unexpected error occured in selecting the banner. Please try again.`);
         }
         setLabBanner(bannerFilePath.data);
@@ -44,32 +45,31 @@ function Settings() {
 
     const submitHandler = async () => {
         setIsLoading(true);
-        const banner=labBanner? labBanner: currentLabBanner
-        const saved=await window.api.setLabDetails({
+        const saved = await window.api.setLabDetails({
             name,
             email,
             address,
             contactNumbers,
-            labBanner:banner
+            labBanner
         })
         setIsLoading(false)
-        if(saved.status==="FAILURE"){
+        if (saved.status === "FAILURE") {
             diaCtx.actions.showDialog("Error", `Oops! looks like some unexpected error occured in saving settings. Please try again.`);
-        }else{
+        } else {
             diaCtx.actions.showDialog("Done", `Saved the settings successfully.`);
         }
     }
 
-    const getLabDetails= async ()=>{
-        const lab= await window.api.getLabDetails();
-        if(lab.status==="FAILURE"){
+    const getLabDetails = async () => {
+        const lab = await window.api.getLabDetails();
+        if (lab.status === "FAILURE") {
             diaCtx.actions.showDialog("Error", `Oops! looks like some unexpected error occured in saving settings. Please try again.`);
         }
         setName(lab.data.name)
         setAddress(lab.data.address)
         setContactNumbers(lab.data.contactNumbers)
         setEmail(lab.data.email)
-        setCurrentLabBanner(lab.data.labBanner);
+        setLabBanner(lab.data.labBanner);
     }
 
     useEffect(() => {
@@ -105,8 +105,8 @@ function Settings() {
                         />
                     </FormControl>
                     <FormControl>
-                        <FormLabel htmlFor="Contact Number">Contact Numbers: {contactNumbers.map((num)=>{
-                            return num+", "
+                        <FormLabel htmlFor="Contact Number">Contact Numbers: {contactNumbers.map((num) => {
+                            return num + ", "
                         })}</FormLabel>
                         <HStack>
                             <Input
@@ -118,10 +118,11 @@ function Settings() {
                         </HStack>
                     </FormControl>
                     <FormControl>
-                            <Button leftIcon={<ArrowUpIcon />} onClick={uploadBanner} colorScheme='gray'>Upload Banner</Button>
-                            <FormLabel htmlFor="Lab_Banner">File Selected: {labBanner?labBanner: 'None'}</FormLabel>
-                            <FormLabel htmlFor="Current_Lab_Banner">Current Banner: {currentLabBanner?currentLabBanner: 'None'}</FormLabel>
-                            <Button onClick={()=>setCurrentLabBanner(null)} colorScheme='gray'>Remove current Banner</Button>
+                        <Button leftIcon={<ArrowUpIcon />} onClick={uploadBanner} colorScheme='gray'>Upload Banner</Button>
+                        <Box boxSize='xs'>
+                            <Image src={labBanner ? `media://${labBanner}` : `none`} alt='Banner preview' />
+                        </Box>
+                        <Button onClick={() => setLabBanner(null)} colorScheme='gray'>Remove current Banner</Button>
                     </FormControl>
                     <Text>Note: If you don't provide a lab banner, the software will generate one automatically for you using the information given.</Text>
                     <FormControl>

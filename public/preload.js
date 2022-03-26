@@ -16,14 +16,18 @@ contextBridge.exposeInMainWorld(
         getReports:()=>ipcRenderer.invoke('getReports'),
         getReportParameters:(reportID)=>ipcRenderer.invoke('getReportParameters', reportID),
         editReport: (reportData)=> ipcRenderer.invoke('editReport', reportData),
-        launchReportPDFWindow: (fileName)=>ipcRenderer.send('launchReportPDFWindow', fileName),
-        launchBillPDFWindow: (fileName)=>ipcRenderer.send('launchBillPDFWindow', fileName),
+        launchPDFWindow: (fileName, type)=>ipcRenderer.send('launchPDFWindow', fileName, type),
         toggleReportStatus: (data)=> ipcRenderer.invoke('toggleReportStatus', data),
         uploadFile: (data)=>ipcRenderer.invoke('uploadFile', data),
         setLabDetails: (data)=> ipcRenderer.invoke('setLabDetails', data),
         getLabDetails: ()=> ipcRenderer.invoke('getLabDetails'),
         getDoctors: ()=> ipcRenderer.invoke('getDoctors'),
         createDoctor: (data)=> ipcRenderer.invoke('createDoctor', data),
-        updateDoctor:(data)=> ipcRenderer.invoke('updateDoctor', data)
+        updateDoctor:(data)=> ipcRenderer.invoke('updateDoctor', data),
+        getInvoices:()=>ipcRenderer.invoke('getInvoices'),
+        getInvoice:(invoice_id)=>ipcRenderer.invoke('getInvoice', invoice_id),
+        getPatients:()=>ipcRenderer.invoke('getPatients'),
+        getPatientDetails: (patient_id)=> ipcRenderer.invoke('getPatientDetails', patient_id),
+        updatePatient:(data, patient_id)=> ipcRenderer.invoke('updatePatient', data, patient_id)
     }
 );

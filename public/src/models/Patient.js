@@ -17,6 +17,7 @@ const Patient = (sequelize, association)=>{
     },
     age: {
       type: DataTypes.INTEGER,
+      allowNull: false
     },
     weight: {
       type: DataTypes.INTEGER, //in kgs

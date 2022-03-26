@@ -3,6 +3,7 @@ const { DataTypes } = require('sequelize');
 const Report = (sequelize) => sequelize.define('Report', {
     referred_by: {
         type: DataTypes.STRING,
+        allowNull: false
     },
     completed: {
         type: DataTypes.BOOLEAN, // status of the report 

@@ -53,7 +53,7 @@ const NewInvoice = () => {
                             </NumberInputStepper>
                         </NumberInput>
                     </FormControl>
-                    <Select width='full' placeholder='Gender'
+                    <Select width='full'
                         onChange={(e) => {
                             billCtx.actions.setGender(e.target.value)
                         }}
@@ -100,6 +100,7 @@ const NewInvoice = () => {
                         </NumberInput>
                     </FormControl>
                     <Button
+                        isLoading={billCtx.state.isLoading}
                         colorScheme='gray'
                         width='full'
                         onClick={() => {

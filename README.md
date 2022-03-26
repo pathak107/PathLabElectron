@@ -48,9 +48,10 @@ PathLabLite is a desktop application for all the pathology lab tests needs.
 
 ### Task Notes:
 1. Implement report and bill template css properly
-2. Implement Patiet and Invoice section
-3. Menu items
-4. Preview of signature and banner
-5. Validations everywhere in react
-6. Auto Update events implementation
-7. Initial data seed for raw data
+3. Option to include gst or not
+4. Menu items
+5. Unlink previous report if new generated
+6. Validations everywhere in react
+7. Auto Update events implementation
+8. Initial data seed for raw data
+9. Disable console logs in production

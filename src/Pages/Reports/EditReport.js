@@ -115,7 +115,7 @@ function EditReport() {
     }
 
     const launchReportPDFWindow = (fileName) => {
-        window.api.launchReportPDFWindow(fileName)
+        window.api.launchPDFWindow(fileName,'REPORT')
     }
 
     return (

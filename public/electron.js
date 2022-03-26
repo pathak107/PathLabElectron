@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain } = require('electron')
+const { app, BrowserWindow, ipcMain, protocol } = require('electron')
 const path = require('path')
 const isDev = require('electron-is-dev');
 const fs = require('fs')
@@ -68,6 +68,12 @@ const createStorageDirectory = () => {
 app.whenReady().then(async () => {
     // Create the storage directory 
     createStorageDirectory()
+
+    // Registering media protocol to resolve to absolute path for local images
+    protocol.registerFileProtocol('media', (request, callback) => {
+        const pathname = decodeURI(request.url.replace('media://', ''));
+        callback(pathname);
+      });
     
     // Configure database
     let sequelize
@@ -166,8 +172,8 @@ ipcMain.handle("generateBill", async (event, data) => {
     if (billGenerated.status === consts.STATUS_SUCCESS) {
         const pdf = await pdfService.printPDF(billsPath, pdfService.TYPE_BILL, billGenerated.data)
         if (pdf.status === consts.STATUS_SUCCESS) {
-            //TODO: If pdf is successful update the pdf filepath in invoice database
-            return billGenerated
+            //If pdf is successful update the pdf filepath in invoice database
+            return await databaseService.saveBillPdfFileName(pdf.fileName, billGenerated.data.invoice_id)
         }
         return {
             status: consts.STATUS_FAILURE,
@@ -210,12 +216,12 @@ ipcMain.handle('editReport', async (event, data) => {
     }
 })
 
-ipcMain.on('launchReportPDFWindow', async (event, fileName) => {
-    pdfService.launchPDFWindow(reportsPath, fileName)
-})
-
-ipcMain.on('launchBillPDFWindow', async (event, fileName) => {
-    pdfService.launchPDFWindow(billsPath, fileName)
+ipcMain.on('launchPDFWindow', async (event, fileName, type) => {
+    if(type===consts.TYPE_BILL){
+        pdfService.launchPDFWindow(billsPath, fileName)
+    }else{
+        pdfService.launchPDFWindow(reportsPath, fileName)
+    }
 })
 
 ipcMain.handle('toggleReportStatus', async (event, data) => {
@@ -229,6 +235,7 @@ ipcMain.handle('toggleReportStatus', async (event, data) => {
                 report.Invoice.Patient.name, 
                 report.Invoice.Patient.contact_number,
                 report.Test_Detail.name,
+                report.updatedAt,
                 path.join(reportsPath, report.report_file_path) 
             )
         }
@@ -318,4 +325,25 @@ ipcMain.handle('updateDoctor', async (event, data) => {
         log.error(`Error in creating doctor: ${error}`)  
         return response(consts.STATUS_FAILURE, error, null)    
     }
+})
+
+
+ipcMain.handle('getInvoices', async (event, data)=>{
+    return await databaseService.getInvoices();
+})
+
+ipcMain.handle('getInvoice', async (event, invoice_id)=>{
+    return await databaseService.getInvoice(invoice_id);
+})
+
+ipcMain.handle('getPatients', async (event, data)=>{
+    return await databaseService.getPatients();
+})
+
+ipcMain.handle('getPatientDetails', async (event, patient_id)=>{
+    return await databaseService.getPatientDetails(patient_id)
+})
+
+ipcMain.handle('updatePatient', async (event, data, patient_id)=>{
+    return await databaseService.updatePatient(data, patient_id)
 })

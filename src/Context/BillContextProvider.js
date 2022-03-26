@@ -56,6 +56,7 @@ const BillContextProvider = ({ children }) => {
     }
 
     const submitHandler = async () => {
+        setIsLoading(true)
         const created= await window.api.generateBill({
             patient_name:name,
             patient_contactNumber:contactNumber,
@@ -66,6 +67,7 @@ const BillContextProvider = ({ children }) => {
             total_amount:totalAmt,
             referred_by: doctor
         })
+        setIsLoading(false)
         if(created.status==="FAILURE"){
             ctx.actions.showDialog("Failed", "Oops! Some error occured in generating the bill. Please try again.")
         }

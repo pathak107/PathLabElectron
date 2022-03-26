@@ -59,7 +59,7 @@ function Reports() {
     }
 
     const launchReportPDFWindow=(fileName)=>{
-        window.api.launchReportPDFWindow(fileName)
+        window.api.launchPDFWindow(fileName, 'REPORT')
     }
 
     const editReport= async (reportID, completed)=>{
@@ -107,7 +107,7 @@ function Reports() {
                                     console.log(report)
                                     return <Tr key={report.id}>
                                         <Td color='teal'>
-                                            <Box as='button' onClick={() => navigate(`/invoice/billPdf/${report.InvoiceId}`)}>{report.InvoiceId}</Box>
+                                            <Box as='button' onClick={() => navigate(`/invoice/${report.InvoiceId}`)}>Invoice#{report.InvoiceId}</Box>
                                         </Td>
                                         <Td>{report.Test_Detail.name}</Td>
                                         <Td>{report.Invoice.Patient.name}</Td>

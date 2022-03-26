@@ -24,10 +24,10 @@ function NavigationPane() {
                             <Td><Box onClick={() => navigate('/')} as='button'>Home</Box></Td>
                         </Tr>
                         <Tr>
-                            <Td><Box as='button'>Patients</Box></Td>
+                            <Td><Box onClick={() => navigate('/patient')} as='button'>Patients</Box></Td>
                         </Tr>
                         <Tr>
-                            <Td><Box as='button'>Invoice</Box></Td>
+                            <Td><Box onClick={() => navigate('/invoice')} as='button'>Invoice</Box></Td>
                         </Tr>
                         <Tr>
                             <Td><Box onClick={() => navigate('/reports')} as='button'>Reports</Box></Td>

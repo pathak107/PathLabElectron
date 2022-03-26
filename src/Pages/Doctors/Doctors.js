@@ -52,7 +52,7 @@ function Doctors() {
                             <Thead>
                                 <Tr>
                                     <Th>Name</Th>
-                                    <Th isNumeric>Degree</Th>
+                                    <Th>Degree</Th>
                                     <Th>Field</Th>
                                 </Tr>
                             </Thead>
@@ -62,7 +62,7 @@ function Doctors() {
                                         <Td color='teal'>
                                             <Box as='button' onClick={() => navigate(`/doctor/editDoctor/${doc.id}`, { state: doc })}>{doc.name}</Box>
                                         </Td>
-                                        <Td isNumeric>{doc.degree}</Td>
+                                        <Td>{doc.degree}</Td>
                                         <Td>{doc.field}</Td>
                                     </Tr>
                                 })
