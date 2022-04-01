@@ -19,6 +19,7 @@ import {
     Spinner,
     Select,
     Link,
+    FormErrorMessage,
 } from "@chakra-ui/react";
 import { ExternalLinkIcon } from '@chakra-ui/icons'
 import { useContext, useEffect, useState } from 'react'
@@ -26,6 +27,7 @@ import { useParams } from "react-router-dom";
 import { AlertContext } from "../../Context/AlertContext";
 import ReactQuill from "react-quill";
 import 'react-quill/dist/quill.snow.css'
+import { isRequired, Validation } from "../../helpers/validation";
 
 function EditReport() {
     const diaCtx = useContext(AlertContext)
@@ -118,6 +120,13 @@ function EditReport() {
         window.api.launchPDFWindow(fileName,'REPORT')
     }
 
+    const [valid, setValid]=useState(Validation([
+        {
+            field:"doctorID",
+            validations:[isRequired]
+        }
+    ]))
+
     return (
         <>
             <Container maxW='container.lg'>
@@ -184,9 +193,9 @@ function EditReport() {
                                 </Tbody>
                             </Table>
 
-                            <FormControl>
-                                <FormLabel htmlFor="doctor">Doctor</FormLabel>
-                                <Select width='full' placeholder='Select Doctor'
+                            <FormControl isRequired isInvalid={valid.doctorID.isInvalid}>
+                                <FormLabel htmlFor="doctor">Select Doctor</FormLabel>
+                                <Select width='full'
                                     onChange={(e) => {
                                         const newReportData = { ...reportData }
                                         newReportData.doctor_id = e.target.value
@@ -198,6 +207,7 @@ function EditReport() {
                                         return <option key={doc.id} value={doc.id}>{doc.name}</option>
                                     })}
                                 </Select>
+                                <FormErrorMessage>{valid.doctorID.errorMsg}</FormErrorMessage>
                             </FormControl>
                             <FormControl>
                                 <FormLabel htmlFor="remarks">Remarks/Feedback/Result</FormLabel>

@@ -55,14 +55,6 @@ function Bill() {
                                 <Td>{billCtx.state.discount}</Td>
                             </Tr>
                             <Tr>
-                                <Td>GST</Td>
-                                <Td>100</Td>
-                            </Tr>
-                            <Tr>
-                                <Td>SGST</Td>
-                                <Td>100</Td>
-                            </Tr>
-                            <Tr>
                                 <Td>Final Amount</Td>
                                 <Td>{billCtx.state.totalAmt - billCtx.state.discount}</Td>
                             </Tr>

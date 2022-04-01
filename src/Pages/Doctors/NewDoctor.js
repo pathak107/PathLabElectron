@@ -3,24 +3,18 @@ import {
     Input,
     Button,
     Container,
-    Textarea,
-    NumberInput,
-    NumberInputField,
-    NumberDecrementStepper,
-    NumberIncrementStepper,
-    NumberInputStepper,
     FormControl,
     FormLabel,
     Heading,
-    Spinner,
     Image,
-    Box
+    Box,
+    FormErrorMessage
 } from "@chakra-ui/react";
 import { useContext, useState } from 'react'
-import ReactQuill from "react-quill";
 import { ArrowUpIcon } from '@chakra-ui/icons'
 import { useNavigate } from "react-router-dom";
 import { AlertContext } from "../../Context/AlertContext";
+import { isEmail, isPhoneNumber, isRequired, Validate, Validation } from "../../helpers/validation";
 
 function NewDoctor() {
     const navigate = useNavigate();
@@ -45,6 +39,11 @@ function NewDoctor() {
     }
 
     const submitHandler = async () => {
+        const isValid= Validate(valid, {name, field, degree, contact_number, email})
+        if(!isValid.valid){
+            setValid(isValid.validation)
+            return
+        }
         setIsLoading(true);
         const created = await window.api.createDoctor({
             name, field, degree, contact_number, address, email, signature_file_path: signature
@@ -56,50 +55,78 @@ function NewDoctor() {
             navigate(-1);
         }
     }
+
+    const [valid, setValid]=useState(Validation([
+        {
+            field:"name",
+            validations:[isRequired]
+        },
+        {
+            field:"field",
+            validations:[isRequired]
+        },
+        {
+            field:"degree",
+            validations:[isRequired]
+        },
+        {
+            field:"email",
+            validations:[isEmail]
+        },
+        {
+            field:"contact_number",
+            validations:[isPhoneNumber]
+        },
+    ]))
     return (
         <>
             <Container>
                 <Heading>Create new Doctor.</Heading>
                 <Stack spacing={3}>
-                    <FormControl>
+                    <FormControl isRequired isInvalid={valid.name.isInvalid}>
                         <FormLabel htmlFor="name">Name</FormLabel>
                         <Input
                             placeholder='Name'
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                         />
+                        <FormErrorMessage>{valid.name.errorMsg}</FormErrorMessage>
                     </FormControl>
-                    <FormControl>
+                    <FormControl isRequired isInvalid={valid.field.isInvalid}>
                         <FormLabel htmlFor="field">Field</FormLabel>
                         <Input
                             placeholder='Field'
                             value={field}
                             onChange={(e) => setField(e.target.value)}
                         />
+                        <FormErrorMessage>{valid.field.errorMsg}</FormErrorMessage>
                     </FormControl>
-                    <FormControl>
+                    <FormControl isRequired isInvalid={valid.degree.isInvalid}>
                         <FormLabel htmlFor="degree">Degree (Comma separated)</FormLabel>
                         <Input
                             placeholder='Ex- MBBS, MD etc'
                             value={degree}
                             onChange={(e) => setDegree(e.target.value)}
                         />
+                        <FormErrorMessage>{valid.degree.errorMsg}</FormErrorMessage>
                     </FormControl>
-                    <FormControl>
+                    <FormControl isInvalid={valid.email.isInvalid}>
                         <FormLabel htmlFor="email">Email</FormLabel>
                         <Input
                             placeholder='Email'
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                         />
+                        <FormErrorMessage>{valid.email.errorMsg}</FormErrorMessage>
                     </FormControl>
-                    <FormControl>
+                    <FormControl isInvalid={valid.contact_number.isInvalid}>
                         <FormLabel htmlFor="contact_number">Contact Number</FormLabel>
                         <Input
                             placeholder='Contact Number'
                             value={contact_number}
                             onChange={(e) => setContactNumber(e.target.value)}
                         />
+                        <FormErrorMessage>{valid.contact_number.errorMsg}</FormErrorMessage>
                     </FormControl>
                     <FormControl>
                         <FormLabel htmlFor="address">Address</FormLabel>

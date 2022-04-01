@@ -47,11 +47,8 @@ PathLabLite is a desktop application for all the pathology lab tests needs.
 5. Once inside the container run `npm run publish`. This will build the app and produce a github release draft.
 
 ### Task Notes:
-1. Implement report and bill template css properly
-3. Option to include gst or not
-4. Menu items
-5. Unlink previous report if new generated
-6. Validations everywhere in react
-7. Auto Update events implementation
-8. Initial data seed for raw data
-9. Disable console logs in production
+1. Option to include gst or not
+1. Auto Update events implementation
+1. Option to remove contact numbers in settings
+1. Option to add and remove test parameters
+1. Option to delete tests or any resources

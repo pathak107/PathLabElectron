@@ -10,6 +10,7 @@ import {
     NumberIncrementStepper,
     NumberDecrementStepper,
     FormControl,
+    FormErrorMessage,
     FormLabel
 } from '@chakra-ui/react'
 import { PhoneIcon } from '@chakra-ui/icons'
@@ -23,19 +24,28 @@ const NewInvoice = () => {
             <Box borderWidth='1px' borderRadius='lg' width='lg' p={5}>
                 <VStack spacing='5'>
                     <Heading size='md'>New Invoice</Heading>
-                    <Input placeholder="Patient's Name"
-                        value={billCtx.state.name} onChange={(e) => {
-                            billCtx.actions.setName(e.target.value);
-                        }} />
-                    <InputGroup>
-                        <InputLeftElement
-                            pointerEvents='none'
-                            children={<PhoneIcon color='gray.300' />}
+                    <FormControl isRequired={true} isInvalid={billCtx.state.valid.name.isInvalid}>
+                        <FormLabel htmlFor='name'>First name</FormLabel>
+                        <Input id='name' placeholder="Patient's Name"
+                            value={billCtx.state.name} onChange={(e) => {
+                                billCtx.actions.setName(e.target.value);
+                            }}
                         />
-                        <Input type='tel' placeholder='Phone number' value={billCtx.state.contactNumber} onChange={(e) => {
-                            billCtx.actions.setContactNumber(e.target.value);
-                        }} />
-                    </InputGroup>
+                        <FormErrorMessage>{billCtx.state.valid.name.errorMsg}</FormErrorMessage>
+                    </FormControl>
+                    <FormControl isRequired={true} isInvalid={billCtx.state.valid.contactNumber.isInvalid}>
+                        <InputGroup>
+                            <InputLeftElement
+                                pointerEvents='none'
+                                children={<PhoneIcon color='gray.300' />}
+                            />
+                            <Input type='tel' placeholder='Phone number' value={billCtx.state.contactNumber} onChange={(e) => {
+                                billCtx.actions.setContactNumber(e.target.value);
+                            }} />
+                        </InputGroup>
+                        <FormErrorMessage>{billCtx.state.valid.contactNumber.errorMsg}</FormErrorMessage>
+                    </FormControl>
+
                     <FormControl>
                         <FormLabel htmlFor='Age'>Age</FormLabel>
                         <NumberInput
@@ -63,25 +73,33 @@ const NewInvoice = () => {
                         <option value="FEMALE">Female</option>
                         <option value="OTHER">Other</option>
                     </Select>
-                    <Select width='full' placeholder='Select Test'
-                        onChange={(e) => {
-                            setSingleTestID(e.target.value)
-                        }}
-                        value={singleTestID}
-                    >
-                        {billCtx.state.allTests.map((test) => {
-                            return <option key={test.id} value={test.id}>{test.name}</option>
-                        })}
-                    </Select>
+                    <FormControl isRequired={true} isInvalid={billCtx.state.valid.tests.isInvalid}>
+                        <FormLabel htmlFor='tests'>Add Tests</FormLabel>
+                        <Select width='full' placeholder='Select Test'
+                            onChange={(e) => {
+                                setSingleTestID(e.target.value)
+                            }}
+                            value={singleTestID}
+                        >
+                            {billCtx.state.allTests.map((test) => {
+                                return <option key={test.id} value={test.id}>{test.name}</option>
+                            })}
+                        </Select>
+                        <FormErrorMessage>{billCtx.state.valid.tests.errorMsg}</FormErrorMessage>
+                    </FormControl>
                     <Button width='full' onClick={() => {
                         billCtx.actions.addTest(singleTestID);
                     }}>
                         Add Test
                     </Button>
 
-                    <Input placeholder="Referred by Doctor" value={billCtx.state.doctor} onChange={(e) => {
-                        billCtx.actions.setDoctor(e.target.value);
-                    }} />
+                    <FormControl isRequired={true} isInvalid={billCtx.state.valid.doctor.isInvalid}>
+                        <FormLabel htmlFor='referred by'>Referred by doctor name / self</FormLabel>
+                        <Input placeholder="Referred by Doctor" value={billCtx.state.doctor} onChange={(e) => {
+                            billCtx.actions.setDoctor(e.target.value);
+                        }} />
+                        <FormErrorMessage>{billCtx.state.valid.doctor.errorMsg}</FormErrorMessage>
+                    </FormControl>
                     <FormControl>
                         <FormLabel htmlFor='Discount'>Discount</FormLabel>
                         <NumberInput

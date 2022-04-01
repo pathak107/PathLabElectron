@@ -10,12 +10,15 @@ import {
     HStack,
     Text,
     Box,
-    Image
+    Image,
+    FormErrorMessage,
+    FormHelperText
 } from "@chakra-ui/react";
 import { ArrowUpIcon } from '@chakra-ui/icons'
 import { useContext, useState } from 'react'
 import { AlertContext } from "../../Context/AlertContext";
 import { useEffect } from 'react';
+import { isArrNotEmpty, isEmail, isRequired, Validate, Validation } from "../../helpers/validation";
 
 function Settings() {
     const diaCtx = useContext(AlertContext)
@@ -44,6 +47,11 @@ function Settings() {
     }
 
     const submitHandler = async () => {
+        const isValid= Validate(valid, {name, contactNumbers, address, email})
+        if(!isValid.valid){
+            setValid(isValid.validation)
+            return
+        }
         setIsLoading(true);
         const saved = await window.api.setLabDetails({
             name,
@@ -82,29 +90,51 @@ function Settings() {
         }
     }, [])
 
+
+    const [valid, setValid]=useState(Validation([
+        {
+            field:"name",
+            validations:[isRequired]
+        },
+        {
+            field:"contactNumbers",
+            validations:[isArrNotEmpty]
+        },
+        {
+            field:"address",
+            validations:[isRequired]
+        },
+        {
+            field:"email",
+            validations:[isEmail]
+        }
+    ]))
+
     return (
         <>
             <Container>
                 <Heading>Settings</Heading>
                 <Heading>Lab Settings</Heading>
                 <Stack spacing={3}>
-                    <FormControl>
+                    <FormControl isRequired isInvalid={valid.name.isInvalid}>
                         <FormLabel htmlFor="name">Name</FormLabel>
                         <Input
                             placeholder='Name'
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                         />
+                        <FormErrorMessage>{valid.name.errorMsg}</FormErrorMessage>
                     </FormControl>
-                    <FormControl>
+                    <FormControl isInvalid={valid.email.isInvalid}>
                         <FormLabel htmlFor="email">Email</FormLabel>
                         <Input
                             placeholder='Email'
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                         />
+                        <FormErrorMessage>{valid.email.errorMsg}</FormErrorMessage>
                     </FormControl>
-                    <FormControl>
+                    <FormControl isInvalid={valid.contactNumbers.isInvalid}>
                         <FormLabel htmlFor="Contact Number">Contact Numbers: {contactNumbers.map((num) => {
                             return num + ", "
                         })}</FormLabel>
@@ -116,19 +146,23 @@ function Settings() {
                             />
                             <Button onClick={addContactNumber} colorScheme='gray'>Add</Button>
                         </HStack>
+                        <FormErrorMessage>{valid.contactNumbers.errorMsg}</FormErrorMessage>
+                    </FormControl>
+                    <FormControl isRequired isInvalid={valid.address.isInvalid}>
+                        <FormLabel htmlFor="address">Address</FormLabel>
+                        <Textarea placeholder='Address' value={address} onChange={(e) => setAddress(e.target.value)} />
+                        <FormErrorMessage>{valid.address.errorMsg}</FormErrorMessage>
                     </FormControl>
                     <FormControl>
                         <Button leftIcon={<ArrowUpIcon />} onClick={uploadBanner} colorScheme='gray'>Upload Banner</Button>
+                        <Text>Note: If you don't provide a lab banner, the software will generate a basic one automatically for you using the information given above.</Text>
                         <Box boxSize='xs'>
                             <Image src={labBanner ? `media://${labBanner}` : `none`} alt='Banner preview' />
                         </Box>
                         <Button onClick={() => setLabBanner(null)} colorScheme='gray'>Remove current Banner</Button>
                     </FormControl>
-                    <Text>Note: If you don't provide a lab banner, the software will generate one automatically for you using the information given.</Text>
-                    <FormControl>
-                        <FormLabel htmlFor="address">Address</FormLabel>
-                        <Textarea placeholder='Address' value={address} onChange={(e) => setAddress(e.target.value)} />
-                    </FormControl>
+
+
                     <Button isLoading={isLoading} colorScheme='gray' onClick={() => submitHandler()}>Save</Button>
                 </Stack>
             </Container>

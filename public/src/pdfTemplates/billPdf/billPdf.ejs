@@ -2,217 +2,95 @@
 <html lang="en">
 
 <head>
-  <meta charset="utf-8">
-  <title>Bill</title>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bill</title>
 </head>
+
 <style>
-  .clearfix:after {
-    content: "";
-    display: table;
-    clear: both;
-  }
+    #banner {
+      margin-top: 0%;
+      margin-bottom: 0%;
+      padding: 0;
+    }
+  </style>
 
-  a {
-    color: #5D6975;
-    text-decoration: underline;
-  }
-
-  body {
-    position: relative;
-    width: 21cm;
-    height: 29.7cm;
-    margin: 0 auto;
-    color: #001028;
-    background: #FFFFFF;
-    font-family: Arial, sans-serif;
-    font-size: 12px;
-    font-family: Arial;
-  }
-
-  header {
-    padding: 10px 0;
-    margin-bottom: 30px;
-  }
-
-  #logo {
-    text-align: center;
-    margin-bottom: 10px;
-  }
-
-  #logo img {
-    width: 90px;
-  }
-
-  h1 {
-    border-top: 1px solid #5D6975;
-    border-bottom: 1px solid #5D6975;
-    color: #5D6975;
-    font-size: 2.4em;
-    line-height: 1.4em;
-    font-weight: normal;
-    text-align: center;
-    margin: 0 0 20px 0;
-    background: url(dimension.png);
-  }
-
-  #project {
-    float: left;
-  }
-
-  #project span {
-    color: #5D6975;
-    text-align: right;
-    width: 52px;
-    margin-right: 20px;
-    display: inline-block;
-    font-size: 0.8em;
-  }
-
-  #company {
-    float: right;
-    text-align: right;
-  }
-
-  #project div,
-  #company div {
-    white-space: nowrap;
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    border-spacing: 0;
-    margin-bottom: 20px;
-  }
-
-  table tr:nth-child(2n-1) td {
-    background: #F5F5F5;
-  }
-
-  table th,
-  table td {
-    text-align: center;
-  }
-
-  table th {
-    padding: 5px 20px;
-    color: #5D6975;
-    border-bottom: 1px solid #C1CED9;
-    white-space: nowrap;
-    font-weight: normal;
-  }
-
-  table .service,
-  table .desc {
-    text-align: left;
-  }
-
-  table td {
-    padding: 20px;
-    text-align: right;
-  }
-
-  table td.service,
-  table td.desc {
-    vertical-align: top;
-  }
-
-  table td.unit,
-  table td.qty,
-  table td.total {
-    font-size: 1.2em;
-  }
-
-  table td.grand {
-    border-top: 1px solid #5D6975;
-    ;
-  }
-
-  #notices .notice {
-    color: #5D6975;
-    font-size: 1.2em;
-  }
-
-  footer {
-    color: #5D6975;
-    width: 100%;
-    height: 30px;
-    position: absolute;
-    bottom: 0;
-    border-top: 1px solid #C1CED9;
-    padding: 8px 0;
-    text-align: center;
-  }
-</style>
-
-<body>
-  <header class="clearfix">
-    <div id="logo">
-      <img src="logo.png">
-    </div>
-    <h1>Bill ID: #<%=data.invoice_id%></h1>
-    <div id="company" class="clearfix">
-      <div>Labs Name</div>
-      <div>455 Foggy Heights,<br /> AZ 85004, US</div>
-      <div>(602) 519-0450</div>
-      <div><a href="mailto:company@example.com">company@example.com</a></div>
-    </div>
-    <div id="project">
-      <div><span>PATIENT</span> <%=data.patient_name%> (P#<%=data.patient_id%>)</div>
-      <div><span>CONTACT</span> <%=data.patient_contactNumber%></div>
-      <div><span>AGE</span> <%=data.age%></div>
-      <div><span>SEX</span> <%=data.gender%> (MALE/FEMALE/OTHER)</div>
-      <div><span>DATE</span> <%=data.invoiceDate%></div>
-      <div><span>REFERRED BY</span> <%=data.referred_by%></div>
-    </div>
-  </header>
-  <main>
-    <table>
-      <thead>
-        <tr>
-          <th class="service">S.NO</th>
-          <th>TEST NAME</th>
-          <th class="desc">DESCRIPTION</th>
-          <th>PRICE (INR)</th>
-        </tr>
-      </thead>
-      <tbody>
-        <%for(let i=0; i< data.testList.length; i++){ %>
-          <tr>
-            <td class="service"><%=i+1%></td>
-            <td class="total"><%=data.testList[i].name%> (T#<%=data.testList[i].id%>)</td>
-            <td class="desc"> <%=data.testList[i].description%></td>
-            <td class="unit"> ₹<%=data.testList[i].cost%></td>
-          </tr>
-        <%}%>
-          
-        
-        <tr>
-          <td colspan="3">SUBTOTAL</td>
-          <td class="total">₹<%=data.total_amount%></td>
-        </tr>
-        <tr>
-          <td colspan="3">TAX 25%</td>
-          <td class="total">₹1,300.00</td>
-        </tr>
-        <tr>
-          <td colspan="3">DISCOUNT</td>
-          <td class="total">₹<%=data.discount%></td>
-        </tr>
-        <tr>
-          <td colspan="3" class="grand total">GRAND TOTAL</td>
-          <td class="grand total">₹<%=data.final_amount%></td>
-        </tr>
-      </tbody>
+<body style="margin-top: 0%;">
+    <div id="banner">
+        <%if(data.labDetails.labBanner){%>
+          <img src="<%=data.labDetails.labBanner%>" style="object-fit:contain; width:100%;">
+          <%}else{%>
+            <h1 style="text-align: center; margin-top: 0%;">
+              <%=data.labDetails.name%>
+            </h1>
+            <p style="text-align: center;">
+              <%=data.labDetails.address%>
+            </p>
+            <p style="text-align: center;">
+              <%=data.labDetails.contactNumbers%>
+            </p>
+            <%}%>
+      </div>
+    <hr />
+    <table style="border-collapse: collapse; width: 100%; height: 68px;" border="1">
+        <tbody>
+            <tr style="height: 23px;">
+                <td style="width: 20.3421%; height: 23px;"><strong>Name</strong></td>
+                <td style="width: 29.6579%; height: 23px;"><%=data.patient_name%> (P#<%=data.patient_id%>)</td>
+                <td style="width: 16.3352%; height: 23px;"><strong>Referred By</strong></td>
+                <td style="width: 33.6648%; height: 23px;"><%=data.referred_by%></td>
+            </tr>
+            <tr style="height: 23px;">
+                <td style="width: 20.3421%; height: 23px;"><strong>Contact Number</strong></td>
+                <td style="width: 29.6579%; height: 23px;"><%=data.patient_contactNumber%></td>
+                <td style="width: 16.3352%; height: 23px;"><strong>Date</strong></td>
+                <td style="width: 33.6648%; height: 23px;"><%=data.invoiceDate%></td>
+            </tr>
+            <tr style="height: 22px;">
+                <td style="width: 20.3421%; height: 22px;"><strong>Age, Sex</strong></td>
+                <td style="width: 29.6579%; height: 22px;"><%=data.age%>, <%=data.gender%></td>
+                <td style="width: 16.3352%; height: 22px;"><strong>Report ID<br /></strong></td>
+                <td style="width: 33.6648%; height: 22px;">I#<%=data.invoice_id%></td>
+            </tr>
+        </tbody>
     </table>
-    <div id="notices">
-      <div>NOTICE:</div>
-      <div class="notice">A finance charge of 1.5% will be made on unpaid balances after 30 days.</div>
-    </div>
-  </main>
-  <footer>
-    Invoice was created on a computer and is valid without the signature and seal.
-  </footer>
+    <hr />
+    <p>&nbsp;</p>
+    <table style="border-collapse: collapse; width: 100%; height: 103px;" border="1">
+        <tbody>
+            <tr style="height: 18px;">
+                <td style="width: 3.75723%; height: 18px;"><strong>S.No.<br /></strong></td>
+                <td style="width: 55.9018%; height: 18px;"><strong>Test Name</strong></td>
+                <td style="width: 17.4716%; height: 18px;"><strong>Cost</strong></td>
+            </tr>
+            <%for(let i=0; i< data.testList.length; i++){ %>
+            <tr style="height: 18px;">
+                <td style="width: 3.75723%; height: 18px;"><%=i+1%></td>
+                <td style="width: 55.9018%; height: 18px;"><%=data.testList[i].name%> (T#<%=data.testList[i].id%>)</td>
+                <td style="width: 17.4716%; height: 18px;">₹<%=data.testList[i].cost%></td>
+            </tr>
+            <%}%>
+            <tr style="height: 13px;">
+                <td style="width: 3.75723%; height: 13px;">&nbsp;</td>
+                <td style="width: 55.9018%; height: 13px;"><strong>Subtotal</strong></td>
+                <td style="width: 17.4716%; height: 13px;">₹<%=data.total_amount%></td>
+            </tr>
+            <tr style="height: 18px;">
+                <td style="width: 3.75723%; height: 18px;">&nbsp;</td>
+                <td style="width: 55.9018%; height: 18px;"><strong>Discount</strong></td>
+                <td style="width: 17.4716%; height: 18px;">₹<%=data.discount%></td>
+            </tr>
+            <tr style="height: 18px;">
+                <td style="width: 3.75723%; height: 18px;">&nbsp;</td>
+                <td style="width: 55.9018%; height: 18px;"><strong>Final Amount</strong></td>
+                <td style="width: 17.4716%; height: 18px;"><strong>₹<%=data.final_amount%></strong></td>
+            </tr>
+        </tbody>
+    </table>
+    <p>&nbsp;</p>
+    <p><strong>Note:</strong></p>
+    <p>This is a computer generated invoice and is valid without a signature or seal</p>
 </body>
 
 </html>

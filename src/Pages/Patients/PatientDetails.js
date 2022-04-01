@@ -21,12 +21,14 @@ import {
     Select,
     Badge,
     Link,
+    FormErrorMessage,
 } from "@chakra-ui/react";
 import { Tabs, TabList, TabPanels, Tab, TabPanel } from '@chakra-ui/react'
 import { ExternalLinkIcon } from '@chakra-ui/icons'
 import { useContext, useEffect, useState } from 'react'
 import { useParams, useNavigate } from "react-router-dom";
 import { AlertContext } from "../../Context/AlertContext";
+import { isEmail, isNumber, isRequired, Validate, Validation } from "../../helpers/validation";
 
 function PatientDetails() {
     const diaCtx = useContext(AlertContext)
@@ -43,7 +45,7 @@ function PatientDetails() {
     const [reports, setReports] = useState([])
     const [bills, setBills] = useState([])
     const [isLoading, setIsLoading] = useState(false);
-    const [completedStatus, setCompletedStatus]= useState(false); // Value is irrelavant, just used to update UI on changin complete status
+    const [completedStatus, setCompletedStatus] = useState(false); // Value is irrelavant, just used to update UI on changin complete status
 
     const getPatientDetails = async () => {
         setIsLoading(true);
@@ -78,6 +80,17 @@ function PatientDetails() {
         [completedStatus])
 
     const submitHandler = async () => {
+        const isValid = Validate(valid, {
+            name: patient.name,
+            email: patient.email,
+            age: patient.age,
+            weight: patient.weight,
+            sex: patient.gender,
+        })
+        if (!isValid.valid) {
+            setValid(isValid.validation)
+            return
+        }
         setIsLoading(true);
         const created = await window.api.updatePatient(patient, params.patient_id)
         setIsLoading(false);
@@ -101,7 +114,7 @@ function PatientDetails() {
         return dateObj.toLocaleString();
     }
     const launchReportPDFWindow = (fileName) => {
-        window.api.launchPDFWindow(fileName,'REPORT')
+        window.api.launchPDFWindow(fileName, 'REPORT')
     }
 
     const toggleReportStatus = async (completed, report_file_path, reportID) => {
@@ -126,6 +139,29 @@ function PatientDetails() {
         }
     }
 
+    const [valid, setValid] = useState(Validation([
+        {
+            field: "name",
+            validations: [isRequired]
+        },
+        {
+            field: "age",
+            validations: [isRequired, isNumber]
+        },
+        {
+            field: "sex",
+            validations: [isRequired]
+        },
+        {
+            field: "weight",
+            validations: [isNumber]
+        },
+        {
+            field: "email",
+            validations: [isEmail]
+        },
+    ]))
+
     return (
         <>
             <Container maxW='container.lg'>
@@ -138,7 +174,7 @@ function PatientDetails() {
                             <Stack spacing={3}>
                                 <Text>Patient ID: #P{params.patient_id}</Text>
                                 <Text>Contact Number: {patient.contact_number}</Text>
-                                <FormControl>
+                                <FormControl isRequired isInvalid={valid.name.isInvalid}>
                                     <FormLabel htmlFor="name">Name</FormLabel>
                                     <Input
                                         placeholder='Name'
@@ -149,8 +185,9 @@ function PatientDetails() {
                                             setPatient(newPatientData)
                                         }}
                                     />
+                                    <FormErrorMessage>{valid.name.errorMsg}</FormErrorMessage>
                                 </FormControl>
-                                <FormControl>
+                                <FormControl isRequired isInvalid={valid.age.isInvalid}>
                                     <FormLabel htmlFor="age">Age</FormLabel>
                                     <Input
                                         placeholder='Age'
@@ -161,22 +198,26 @@ function PatientDetails() {
                                             setPatient(newPatientData)
                                         }}
                                     />
+                                    <FormErrorMessage>{valid.age.errorMsg}</FormErrorMessage>
                                 </FormControl>
-                                <FormLabel htmlFor="sex">Sex</FormLabel>
-                                <Select width='full'
-                                    onChange={(e) => {
-                                        const newPatientData = { ...patient }
-                                        newPatientData.gender = e.target.value
-                                        setPatient(newPatientData)
-                                    }}
-                                    value={patient.gender}
-                                >
-                                    <option value="MALE">Male</option>
-                                    <option value="FEMALE">Female</option>
-                                    <option value="OTHER">Other</option>
-                                </Select>
-                                <FormControl>
-                                    <FormLabel htmlFor="weight">Weight</FormLabel>
+                                <FormControl isRequired isInvalid={valid.sex.isInvalid}>
+                                    <FormLabel htmlFor="sex">Sex</FormLabel>
+                                    <Select width='full'
+                                        onChange={(e) => {
+                                            const newPatientData = { ...patient }
+                                            newPatientData.gender = e.target.value
+                                            setPatient(newPatientData)
+                                        }}
+                                        value={patient.gender}
+                                    >
+                                        <option value="MALE">Male</option>
+                                        <option value="FEMALE">Female</option>
+                                        <option value="OTHER">Other</option>
+                                    </Select>
+                                    <FormErrorMessage>{valid.sex.errorMsg}</FormErrorMessage>
+                                </FormControl>
+                                <FormControl isInvalid={valid.weight.isInvalid}>
+                                    <FormLabel htmlFor="weight">Weight (kgs)</FormLabel>
                                     <Input
                                         placeholder='Weight'
                                         value={patient.weight}
@@ -186,8 +227,9 @@ function PatientDetails() {
                                             setPatient(newPatientData)
                                         }}
                                     />
+                                    <FormErrorMessage>{valid.weight.errorMsg}</FormErrorMessage>
                                 </FormControl>
-                                <FormControl>
+                                <FormControl isInvalid={valid.email.isInvalid}>
                                     <FormLabel htmlFor="Email">Email</FormLabel>
                                     <Input
                                         placeholder='Email'
@@ -198,6 +240,7 @@ function PatientDetails() {
                                             setPatient(newPatientData)
                                         }}
                                     />
+                                    <FormErrorMessage>{valid.email.errorMsg}</FormErrorMessage>
                                 </FormControl>
                                 <Button isLoading={isLoading} colorScheme='gray' onClick={() => submitHandler()}>Save</Button>
                             </Stack>

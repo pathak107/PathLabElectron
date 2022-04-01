@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, protocol } = require('electron')
+const { app, BrowserWindow, ipcMain, protocol, Menu } = require('electron')
 const path = require('path')
 const isDev = require('electron-is-dev');
 const fs = require('fs')
@@ -9,14 +9,63 @@ const { dialog } = require('electron')
 const { autoUpdater } = require("electron-updater")
 const databaseService = require('./src/Services/databaseService')
 const log = require('./src/Services/log');
-const sqlite3= require('sqlite3')
-const {Sequelize}= require('sequelize')
-const webService= require('./src/Services/webService')
+const sqlite3 = require('sqlite3')
+const { Sequelize } = require('sequelize')
+const webService = require('./src/Services/webService')
 
 //Auto updater logging configureation
 autoUpdater.logger = log
 autoUpdater.logger.transports.file.level = "info"
 
+
+const isMac = process.platform === 'darwin'
+
+const template = [
+    {
+        label: 'File',
+        submenu: [
+            isMac ? { role: 'close' } : { role: 'quit' }
+        ]
+    },
+    { role: 'editMenu' },
+    {
+        label: 'View',
+        submenu: isDev ? [
+            { role: 'reload' },
+            { role: 'forceReload' },
+            { role: 'toggleDevTools' },
+            { type: 'separator' },
+            { role: 'resetZoom' },
+            { role: 'zoomIn' },
+            { role: 'zoomOut' },
+            { type: 'separator' },
+            { role: 'togglefullscreen' }
+        ] :
+            [
+                { role: 'resetZoom' },
+                { role: 'zoomIn' },
+                { role: 'zoomOut' },
+                { type: 'separator' },
+                { role: 'togglefullscreen' }
+            ]
+    },
+    { role: 'windowMenu' },
+    {
+        role: 'help',
+        submenu: [
+            {
+                label: 'Learn More',
+                click: async () => {
+                    const { shell } = require('electron')
+                    await shell.openExternal('https://electronjs.org')
+                }
+            }
+        ]
+    }
+]
+
+const menu = Menu.buildFromTemplate(template)
+Menu.setApplicationMenu(menu)
 
 let win;
 function createWindow() {
@@ -73,13 +122,13 @@ app.whenReady().then(async () => {
     protocol.registerFileProtocol('media', (request, callback) => {
         const pathname = decodeURI(request.url.replace('media://', ''));
         callback(pathname);
-      });
-    
+    });
+
     // Configure database
     let sequelize
     const dbFile = path.join(app.getPath('documents'), 'PathLabLite', 'labTest.db')
     if (!fs.existsSync(dbFile)) {
-        new sqlite3.Database(dbFile, async(err) => {
+        new sqlite3.Database(dbFile, async (err) => {
             if (err) {
                 return log.error(`Error occured in creating database: ${err}`);
             }
@@ -95,7 +144,7 @@ app.whenReady().then(async () => {
             databaseService.init(sequelize)
             databaseService.setupModels()
             await sequelize.sync({ force: true });
-            databaseService.setupDatabase();
+            await databaseService.setupDatabase();
             createWindow()
             // try {
             //     await sequelize.authenticate();
@@ -118,7 +167,7 @@ app.whenReady().then(async () => {
         databaseService.setupModels()
         createWindow()
     }
-    
+
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
             createWindow()
@@ -150,7 +199,11 @@ const response = (status, error, data) => {
     }
 }
 ipcMain.handle("addTest", async (event, data) => {
-    return await databaseService.addTest(data.name, data.cost, data.description)
+    return await databaseService.addTest(data.name, data.cost, data.description, data.TestParameters)
+});
+
+ipcMain.handle("updateTest", async (event, data) => {
+    return await databaseService.updateTest(data.name, data.cost, data.desc, data.testID)
 });
 
 ipcMain.handle('getTests', async (event, data) => {
@@ -170,7 +223,9 @@ ipcMain.handle("addTestParameter", async (event, data) => {
 ipcMain.handle("generateBill", async (event, data) => {
     const billGenerated = await databaseService.generateBill(data)
     if (billGenerated.status === consts.STATUS_SUCCESS) {
-        const pdf = await pdfService.printPDF(billsPath, pdfService.TYPE_BILL, billGenerated.data)
+        const labSettings = storage.getLabDetails();
+        const newBillData = { ...billGenerated.data, labDetails: labSettings }
+        const pdf = await pdfService.printPDF(billsPath, pdfService.TYPE_BILL, newBillData)
         if (pdf.status === consts.STATUS_SUCCESS) {
             //If pdf is successful update the pdf filepath in invoice database
             return await databaseService.saveBillPdfFileName(pdf.fileName, billGenerated.data.invoice_id)
@@ -217,9 +272,9 @@ ipcMain.handle('editReport', async (event, data) => {
 })
 
 ipcMain.on('launchPDFWindow', async (event, fileName, type) => {
-    if(type===consts.TYPE_BILL){
+    if (type === consts.TYPE_BILL) {
         pdfService.launchPDFWindow(billsPath, fileName)
-    }else{
+    } else {
         pdfService.launchPDFWindow(reportsPath, fileName)
     }
 })
@@ -229,14 +284,14 @@ ipcMain.handle('toggleReportStatus', async (event, data) => {
     if (statusChanged.status === "SUCCESS") {
         if (!data.currentReportStatus) {
             // Status changed to done so upload PDF and message the patient
-            const report= statusChanged.data
+            const report = statusChanged.data
             log.debug(report)
             webService.uploadReport(
-                report.Invoice.Patient.name, 
+                report.Invoice.Patient.name,
                 report.Invoice.Patient.contact_number,
                 report.Test_Detail.name,
                 report.updatedAt,
-                path.join(reportsPath, report.report_file_path) 
+                path.join(reportsPath, report.report_file_path)
             )
         }
         return {
@@ -303,12 +358,12 @@ ipcMain.handle('createDoctor', async (event, data) => {
         if (data.signature_file_path) {
             signatureFilePath = path.join(signaturesPath, `signD-${data.name}${Date.now()}` + path.extname(data.signature_file_path))
             fs.copyFileSync(data.signature_file_path, signatureFilePath)
-            data.signature_file_path=signatureFilePath
+            data.signature_file_path = signatureFilePath
         }
         return await databaseService.createDoctor(data)
     } catch (error) {
-        log.error(`Error in creating doctor: ${error}`)  
-        return response(consts.STATUS_FAILURE, error, null)    
+        log.error(`Error in creating doctor: ${error}`)
+        return response(consts.STATUS_FAILURE, error, null)
     }
 })
 
@@ -318,32 +373,32 @@ ipcMain.handle('updateDoctor', async (event, data) => {
         if (data.signature_file_path && !fs.existsSync(data.signature_file_path)) {
             signatureFilePath = path.join(signaturesPath, `signD-${data.name}${Date.now()}` + path.extname(data.signature_file_path))
             fs.copyFileSync(data.signature_file_path, signatureFilePath)
-            data.signature_file_path=signatureFilePath
+            data.signature_file_path = signatureFilePath
         }
         return await databaseService.updateDoctor(data)
     } catch (error) {
-        log.error(`Error in creating doctor: ${error}`)  
-        return response(consts.STATUS_FAILURE, error, null)    
+        log.error(`Error in creating doctor: ${error}`)
+        return response(consts.STATUS_FAILURE, error, null)
     }
 })
 
 
-ipcMain.handle('getInvoices', async (event, data)=>{
+ipcMain.handle('getInvoices', async (event, data) => {
     return await databaseService.getInvoices();
 })
 
-ipcMain.handle('getInvoice', async (event, invoice_id)=>{
+ipcMain.handle('getInvoice', async (event, invoice_id) => {
     return await databaseService.getInvoice(invoice_id);
 })
 
-ipcMain.handle('getPatients', async (event, data)=>{
+ipcMain.handle('getPatients', async (event, data) => {
     return await databaseService.getPatients();
 })
 
-ipcMain.handle('getPatientDetails', async (event, patient_id)=>{
+ipcMain.handle('getPatientDetails', async (event, patient_id) => {
     return await databaseService.getPatientDetails(patient_id)
 })
 
-ipcMain.handle('updatePatient', async (event, data, patient_id)=>{
+ipcMain.handle('updatePatient', async (event, data, patient_id) => {
     return await databaseService.updatePatient(data, patient_id)
 })

@@ -2,271 +2,97 @@
 <html lang="en">
 
 <head>
-  <meta charset="utf-8">
-  <title>Bill</title>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Report PDF Template</title>
 </head>
+
 <style>
-  .clearfix:after {
-    content: "";
-    display: table;
-    clear: both;
-  }
-
-  a {
-    color: #5D6975;
-    text-decoration: underline;
-  }
-
-  body {
-    position: relative;
-    width: 21cm;
-    height: 29.7cm;
-    margin: 0 auto;
-    color: #001028;
-    background: #FFFFFF;
-    font-family: Arial, sans-serif;
-    font-size: 12px;
-    font-family: Arial;
-  }
-
-  /* header {
-    padding: 10px 0;
-    margin-bottom: 30px;
-  } */
-
-  #logo {
-    text-align: center;
-    margin-bottom: 10px;
-  }
-
-  #logo img {
-    width: 90px;
-  }
-
-  h1 {
-    border-top: 1px solid #5D6975;
-    border-bottom: 1px solid #5D6975;
-    color: #5D6975;
-    font-size: 2.4em;
-    line-height: 1.4em;
-    font-weight: normal;
-    text-align: center;
-    margin: 0 0 20px 0;
-    background: url(dimension.png);
-  }
-
-  .banner {
-    border-top: 1px solid #5D6975;
-    border-bottom: 1px solid #5D6975;
-    text-align: center;
-    margin: 0 0 0 0;
-  }
-
-  br {
-    border-top: 1px solid #5D6975;
-    border-bottom: 1px solid #5D6975;
-  }
-
-  #project {
-    float: left;
-  }
-
-  #project span {
-    color: #5D6975;
-    text-align: right;
-    width: 52px;
-    margin-right: 20px;
-    display: inline-block;
-    font-size: 0.8em;
-  }
-
-  #company {
-    float: right;
-    text-align: right;
-  }
-
-  #project div,
-  #company div {
-    white-space: nowrap;
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    border-spacing: 0;
-    margin-bottom: 20px;
-  }
-
-  table tr:nth-child(2n-1) td {
-    background: #F5F5F5;
-  }
-
-  table th,
-  table td {
-    text-align: left;
-  }
-
-  table th {
-    padding: 20px;
-    color: #5D6975;
-    border-bottom: 1px solid #C1CED9;
-    white-space: nowrap;
-    font-weight: normal;
-  }
-
-  table .service,
-  table .desc {
-    text-align: left;
-  }
-
-  table td {
-    padding: 20px;
-  }
-
-  table td.service,
-  table td.desc {
-    vertical-align: top;
-  }
-
-  table td.unit,
-  table td.qty,
-  table td.total {
-    font-size: 1.2em;
-  }
-
-  table td.grand {
-    border-top: 1px solid #5D6975;
-    ;
-  }
-
-  #notices .notice {
-    color: #5D6975;
-    font-size: 1.2em;
-  }
-
-  footer {
-    color: #5D6975;
-    width: 100%;
-    height: 30px;
-    position: absolute;
-    bottom: 0;
-    border-top: 1px solid #C1CED9;
-    padding: 8px 0;
-    text-align: center;
+  #banner {
+    margin-top: 0%;
+    margin-bottom: 0%;
+    padding: 0;
   }
 </style>
 
-<body>
-  <header class="clearfix">
-    <div class="banner">
-      <%if(data.labDetails.labBanner){%>
-        <img src="<%=data.labDetails.labBanner%>">
-        <%}else{%>
-          <h2>
-            <%=data.labDetails.name%>
-          </h2>
-          <h2>
-            <%=data.labDetails.address%>
-          </h2>
-          <h2>
-            <%=data.labDetails.contactNumbers%>
-          </h2>
-          <h2>
-            <%=data.labDetails.email%>
-          </h2>
-          <%}%>
-    </div>
-    <h1>
-      <%=data.Test_Detail.name%> (R#<%=data.id%>)
-    </h1>
-    <div id="company" class="clearfix">
-      <div><span>TEST DATE:</span>
-        <%=data.createdAt%>
-      </div>
-      <div><span>REPORT DATE:</span>
-        <%=data.updatedAt%>
-      </div>
-    </div>
-    <div id="project">
-      <div><span>PATIENT</span>
-        <%=data.Invoice.Patient.name%> (P#<%=data.Invoice.Patient.id%>)
-      </div>
-      <div><span>CONTACT</span>
-        <%=data.Invoice.Patient.contact_number%>
-      </div>
-      <div><span>AGE & SEX</span>
-        <%=data.Invoice.Patient.age%>, <%=data.Invoice.Patient.gender%>
-      </div>
-      <div><span>REFERRED BY</span>
-        <%=data.referred_by%>
-      </div>
-    </div>
-  </header>
-  <main>
-    <table>
-      <thead>
-        <tr>
-          <th>PARAMETER</th>
-          <th>RESULT</th>
-          <th>UNIT</th>
-          <th>NORMAL RANGE</th>
-        </tr>
-      </thead>
-      <tbody>
-        <%for(let i=0; i< data.Test_Parameters.length; i++){ %>
-          <tr>
-            <td>
-              <%=data.Test_Parameters[i].name%>
-            </td>
-            <td>
-              <%=data.Test_Parameters[i].ReportValue.value%>
-            </td>
-            <td>
-              <%=data.Test_Parameters[i].unit%>
-            </td>
-            <td>
-              <%=data.Test_Parameters[i].range%>
-            </td>
-          </tr>
-          <%}%>
-      </tbody>
-    </table>
-    <div id="notices">
-      <div>REMARKS:</div>
-      <%-data.remarks%>
-    </div>
-    <div id="notices">
-      <div>DECRIPTION:</div>
+<body style="margin-top: 0%;">
+  <div id="banner">
+    <%if(data.labDetails.labBanner){%>
+      <img src="<%=data.labDetails.labBanner%>" style="object-fit:contain; width:100%;">
+      <%}else{%>
+        <h1 style="text-align: center; margin-top: 0%;">
+          <%=data.labDetails.name%>
+        </h1>
+        <p style="text-align: center;">
+          <%=data.labDetails.address%>
+        </p>
+        <p style="text-align: center;">
+          <%=data.labDetails.contactNumbers%>
+        </p>
+        <%}%>
+  </div>
+  <hr />
+  <h3 style="text-align: center;"><%=data.Test_Detail.name%> (R#<%=data.id%>)</h3>
+  <hr />
+  <table style="border-collapse: collapse; width: 100%; height: 68px;" border="1">
+    <tbody>
+      <tr style="height: 23px;">
+        <td style="width: 20.3421%; height: 23px;"><strong>Name</strong></td>
+        <td style="width: 29.6579%; height: 23px;"><%=data.Invoice.Patient.name%> (P#<%=data.Invoice.Patient.id%>)</td>
+        <td style="width: 16.3352%; height: 23px;"><strong>Referred By</strong></td>
+        <td style="width: 33.6648%; height: 23px;"><%=data.referred_by%></td>
+      </tr>
+      <tr style="height: 23px;">
+        <td style="width: 20.3421%; height: 23px;"><strong>Contact Number</strong></td>
+        <td style="width: 29.6579%; height: 23px;"><%=data.Invoice.Patient.contact_number%></td>
+        <td style="width: 16.3352%; height: 23px;"><strong>Test Date</strong></td>
+        <td style="width: 33.6648%; height: 23px;"><%=data.createdAt%></td>
+      </tr>
+      <tr style="height: 22px;">
+        <td style="width: 20.3421%; height: 22px;"><strong>Age, Sex</strong></td>
+        <td style="width: 29.6579%; height: 22px;"><%=data.Invoice.Patient.age%>, <%=data.Invoice.Patient.gender%></td>
+        <td style="width: 16.3352%; height: 22px;"><strong>Report Date</strong></td>
+        <td style="width: 33.6648%; height: 22px;"><%=data.updatedAt%></td>
+      </tr>
+    </tbody>
+  </table>
+  <hr />
+  <table style="border-collapse: collapse; width: 100%; height: 36px;" border="1">
+    <tbody>
+      <tr style="height: 18px;">
+        <td style="width: 28.8353%; height: 18px;"><strong>Test Parameter</strong></td>
+        <td style="width: 30.8238%; height: 18px;"><strong>Result</strong></td>
+        <td style="width: 17.4716%; height: 18px;"><strong>Unit</strong></td>
+        <td style="width: 22.8693%; height: 18px;"><strong>Normal Range</strong></td>
+      </tr>
       <%for(let i=0; i< data.Test_Parameters.length; i++){ %>
-        <div class="notice">
-          <%=data.Test_Parameters[i].name%>: <%=data.Test_Parameters[i].description%>
-        </div>
-        <%}%>
-    </div>
-    <hr />
-    <div id="notices">
-      <div>NOTE:</div>
-      <div class="notice">
-        <%=data.Test_Detail.description%>
-      </div>
-    </div>
-    <% if(data.Doctor){ %>
-      <div id="company" class="clearfix">
-        <div><%=data.Doctor.name%></div>
-        <div><%=data.Doctor.degree%></div>
-        <div><%=data.Doctor.field%></div>
-        <%if(data.Doctor.signature_file_path){%>
-          <div id="logo">
-            <img src="<%=data.Doctor.signature_file_path%>">
-          </div>
-        <%}%>
-      </div>
+      <tr style="height: 18px;">
+        <td style="width: 28.8353%; height: 18px;"><%=data.Test_Parameters[i].name%></td>
+        <td style="width: 30.8238%; height: 18px;"><%=data.Test_Parameters[i].ReportValue.value%></td>
+        <td style="width: 17.4716%; height: 18px;"><%=data.Test_Parameters[i].unit%></td>
+        <td style="width: 22.8693%; height: 18px;"><%=data.Test_Parameters[i].range%></td>
+      <%}%>
+      </tr>
+    </tbody>
+  </table>
+  <p><strong>Remarks:</strong></p>
+  <p><%-data.remarks%></p>
+  <p><strong>Description:</strong></p>
+  <ol>
+    <%for(let i=0; i< data.Test_Parameters.length; i++){ %>
+    <li><%=data.Test_Parameters[i].name%>: <%=data.Test_Parameters[i].description%></li>
     <%}%>
-
-  </main>
-  <footer>
-    This is a computer generated report.
-  </footer>
+  </ol>
+  <p><strong>Note:</strong></p>
+  <p><%=data.Test_Detail.description%></p>
+  <p style="text-align: right;"><strong><%=data.Doctor.name%></strong></p>
+  <p style="text-align: right;"><strong><%=data.Doctor.degree%></strong></p>
+  <p style="text-align: right;"><strong><%=data.Doctor.field%></strong></p>
+  <%if(data.Doctor.signature_file_path){%>
+  <p style="text-align: right;"><img src="<%=data.Doctor.signature_file_path%>"
+      alt="" width="152" height="90" /></p>
+  <%}%>
 </body>
 
 </html>

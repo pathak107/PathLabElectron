@@ -41,19 +41,23 @@ const setupModels = () => {
     log.info("Models setup completed successfully")
 }
 
-const setupDatabase = () => {
+const setupDatabase = async () => {
     try {
-        const queryInterface = sequelize.getQueryInterface();
-        queryInterface.bulkInsert('Test_Details', rawData.TestDetailsData);
+        await TestDetails.bulkCreate(rawData.TestDetailsData, { include: [ TestParameter ]});
     } catch (error) {
-        log.error(`Database setup failed: ${error}`)
+        console.log(error)
+        log.error("Database setup failed: ", error)
     }
 
 }
-const addTest = async (name, cost, description) => {
+const addTest = async (name, cost, description, testParas) => {
     try {
-        log.info(`Adding test Data: ${name}, ${cost}, ${description}`);
-        await TestDetails.create({ name, cost, description });
+        const testData={
+            name,cost,description,
+            Test_Parameters: testParas
+        }
+        log.info("Adding test Data: ", testData);
+        await TestDetails.create(testData, {include:[TestParameter]});
         return response(consts.STATUS_SUCCESS, null, null)
     } catch (error) {
         log.error(`Error occurred in adding Test Data: ${error}`)
@@ -69,6 +73,20 @@ const getTests = async () => {
     } catch (error) {
         log.error(`Error in getting test data: ${error}`)
         return response(consts.STATUS_FAILURE, error, [])
+    }
+}
+
+const updateTest= async (name, cost, desc, testID)=>{
+    try {
+        await TestDetails.update({ name, cost, description:desc }, {
+            where: {
+                id: testID
+            }
+        })
+        return response(consts.STATUS_SUCCESS, null, null)
+    } catch (error) {
+        log.error("Error in updating test: ", error)
+        return response(consts.STATUS_FAILURE, error, null)
     }
 }
 
@@ -306,7 +324,7 @@ const createDoctor = async (data) => {
     }
     doctorData = data.contact_number ? { ...doctorData, contact_number: data.contact_number }: doctorData
     doctorData = data.address ? { ...doctorData, address: data.address }: doctorData
-    doctorData = data.email ? { ...doctorData, email: data.address }: doctorData
+    doctorData = data.email ? { ...doctorData, email: data.email }: doctorData
     doctorData = data.signature_file_path ? { ...doctorData, signature_file_path: data.signature_file_path }: doctorData
 
     try {
@@ -451,6 +469,7 @@ module.exports = {
     getPatients,
     getPatientDetails,
     updatePatient,
+    updateTest,
     init,
     setupDatabase
 }

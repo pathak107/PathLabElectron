@@ -10,9 +10,23 @@ const TYPE_BILL="BILL"
 const printPDF= async (storagePath, type, data)=>{
     let fileName="";
     let templatePath;
-    log.info(`Data to be written into PDF: ${data}`, data);
-    log.info(`Type of data = ${type}`)
+    log.info("Data to be written into PDF:", data);
+    log.info(`Type of data = ${type}`);
     if(type===TYPE_REPORT){
+        if(data.report_file_path && data.report_file_path!==''){
+            try {
+                fs.unlinkSync(path.join(storagePath, data.report_file_path))
+                log.info("Successfully unlinked previous report pdf")
+            } catch (error) {
+                log.error("Error in unlinking previous report: ", error)
+                return {
+                    status: 'FAILURE',
+                    error,
+                    fileName: null
+                }
+            }
+            
+        }
         const createdDate= new Date(data.createdAt)
         const updatedDate= new Date(data.updatedAt)
         data.createdAt= createdDate.toLocaleString();

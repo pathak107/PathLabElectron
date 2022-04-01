@@ -28,6 +28,7 @@ contextBridge.exposeInMainWorld(
         getInvoice:(invoice_id)=>ipcRenderer.invoke('getInvoice', invoice_id),
         getPatients:()=>ipcRenderer.invoke('getPatients'),
         getPatientDetails: (patient_id)=> ipcRenderer.invoke('getPatientDetails', patient_id),
-        updatePatient:(data, patient_id)=> ipcRenderer.invoke('updatePatient', data, patient_id)
+        updatePatient:(data, patient_id)=> ipcRenderer.invoke('updatePatient', data, patient_id),
+        updateTest: (data)=>ipcRenderer.invoke('updateTest', data)
     }
 );

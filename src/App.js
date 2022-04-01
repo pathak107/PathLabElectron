@@ -3,7 +3,7 @@ import Doctors from "./Pages/Doctors/Doctors";
 import Home from "./Pages/Home";
 import { Route, Routes } from "react-router-dom"
 import NewDoctor from "./Pages/Doctors/NewDoctor";
-import { Box, Flex} from "@chakra-ui/react";
+import { Box, Flex } from "@chakra-ui/react";
 import NavigationPane from "./Components/NavigationPane";
 import TestDetails from "./Pages/Tests/TestDetails";
 import NewTest from "./Pages/Tests/NewTest";
@@ -29,11 +29,11 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/doctor" element={<Doctors />} />
           <Route path="/doctor/newDoctor" element={<NewDoctor />} />
-          <Route path="/doctor/editDoctor/:docID" element={<EditDoctor/>} />
-          
+          <Route path="/doctor/editDoctor/:docID" element={<EditDoctor />} />
+
           <Route path="/tests" element={<TestDetails />} />
-          <Route path="/tests/newTest" element={<NewTest />} />
-          <Route path="/tests/editTest/:testID" element={<TestParaContextProvider><EditTest /></TestParaContextProvider> } />
+          <Route path="/tests/newTest" element={<TestParaContextProvider><NewTest /></TestParaContextProvider>} />
+          <Route path="/tests/editTest/:testID" element={<TestParaContextProvider><EditTest /></TestParaContextProvider>} />
 
           <Route path="/reports" element={<Reports />} />
           <Route path="/reports/editReport/:reportID" element={<EditReport />} />

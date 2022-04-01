@@ -20,7 +20,8 @@ import {
     Td,
     TableCaption,
     Progress,
-    Text
+    Text,
+    FormErrorMessage
 
 } from "@chakra-ui/react";
 import { useContext, useEffect, useState } from 'react'
@@ -29,6 +30,7 @@ import { useLocation, useParams } from "react-router-dom";
 import AddTestParameterModal from "../../Components/PopOvers/AddTestParameter";
 import { AlertContext } from "../../Context/AlertContext";
 import { TestParaContext } from "../../Context/TestParaContext";
+import {isNumber, isRequired,Validate, Validation} from "../../helpers/validation"
 
 function EditTest() {
     const ctx = useContext(TestParaContext);
@@ -60,20 +62,50 @@ function EditTest() {
     },
         [ctx.state.isLoading])
 
-    const submitHandler = () => {
+    const submitHandler = async () => {
+        const isValid=Validate(valid,{
+            name:testData.name,
+            cost:testData.cost,
+        })
+        setValid(isValid.validation)
+        if(!isValid.valid){
+            return
+        }
+        
+        setIsLoading(true);
+        const updated= await window.api.updateTest({name:testData.name, cost: testData.cost, desc: testData.description, testID: params.testID})
+        setIsLoading(false)
+        if (updated.status === "FAILURE") {
+            diaCtx.actions.showDialog("Error", `Oops! looks like some unexpected error occured in updating test. Please try again.`);
+        } else {
+            diaCtx.actions.showDialog("Done", `Successfully updated the data.`);
+        }
 
     }
     const addTestParaHandler = () => {
+        ctx.actions.setIsForNewTest(false)
         ctx.actions.setTestID(testData.id)
         ctx.actions.setIsOpen(true);
     }
+
+    const [valid, setValid] = useState(Validation([
+        {
+            field: "name",
+            validations: [isRequired]
+        },
+        {
+            field: "cost",
+            validations: [isRequired, isNumber]
+        },
+    ]))
+
     return (
         <>
             <Container maxW='container.lg'>
                 <AddTestParameterModal />
                 <Heading>Edit {testData.name}</Heading>
                 <Stack spacing={3}>
-                    <FormControl>
+                    <FormControl isRequired isInvalid={valid.name.isInvalid}>
                         <FormLabel htmlFor="name">Edit Test</FormLabel>
                         <Input
                             placeholder='Name'
@@ -84,9 +116,10 @@ function EditTest() {
                                 setTestData(newTestData);
                             }}
                         />
+                        <FormErrorMessage>{valid.name.errorMsg}</FormErrorMessage>
                     </FormControl>
 
-                    <FormControl>
+                    <FormControl isRequired isInvalid={valid.cost.isInvalid}>
                         <FormLabel htmlFor='cost'>Cost</FormLabel>
                         <NumberInput defaultValue={testData.cost} min={0} value={testData.cost}
                             onChange={(cost) => {
@@ -101,6 +134,7 @@ function EditTest() {
                                 <NumberDecrementStepper />
                             </NumberInputStepper>
                         </NumberInput>
+                        <FormErrorMessage>{valid.cost.errorMsg}</FormErrorMessage>
                     </FormControl>
 
                     <FormControl>
