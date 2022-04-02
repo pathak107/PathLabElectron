@@ -27,7 +27,7 @@ import { useParams } from "react-router-dom";
 import { AlertContext } from "../../Context/AlertContext";
 import ReactQuill from "react-quill";
 import 'react-quill/dist/quill.snow.css'
-import { isRequired, Validation } from "../../helpers/validation";
+import { isRequired, Validate, Validation } from "../../helpers/validation";
 
 function EditReport() {
     const diaCtx = useContext(AlertContext)
@@ -43,7 +43,7 @@ function EditReport() {
         referred_by: "",
         report_values: [],
         remarks: "",
-        doctor_id: null,
+        doctor_id: "",
     });
     const [doctors, setDoctors] = useState([])
     const [isLoading, setIsLoading] = useState(false);
@@ -54,6 +54,7 @@ function EditReport() {
         if (rp.error || !rp.data) {
             diaCtx.actions.showDialog("Error", `Oops! looks like some unexpected error occured. Please try again. \n ${rp.error}`);
         } else {
+            console.log(rp.data.DoctorId)
             const reportValues = []
             rp.data.Test_Parameters.forEach((tp) => {
                 reportValues.push({
@@ -106,6 +107,12 @@ function EditReport() {
         [params.reportID])
 
     const submitHandler = async () => {
+        const isValid= Validate(valid, {doctorID: reportData.doctor_id})
+        if(!isValid.valid){
+            setValid(isValid.validation)
+            return
+        }
+        console.log(reportData)
         setIsLoading(true);
         const created = await window.api.editReport(reportData)
         setIsLoading(false);
@@ -196,10 +203,12 @@ function EditReport() {
                             <FormControl isRequired isInvalid={valid.doctorID.isInvalid}>
                                 <FormLabel htmlFor="doctor">Select Doctor</FormLabel>
                                 <Select width='full'
+                                    placeholder="Select Doctor"
                                     onChange={(e) => {
                                         const newReportData = { ...reportData }
                                         newReportData.doctor_id = e.target.value
                                         setReportData(newReportData)
+                                        console.log(reportData.doctor_id)
                                     }}
                                     value={reportData.doctor_id}
                                 >

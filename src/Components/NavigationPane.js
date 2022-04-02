@@ -12,14 +12,14 @@ function NavigationPane() {
     const navigate = useNavigate()
     return (
         <>
-            <VStack>
+            <VStack bg="#011627" textColor="white">
                 <Table size='lg'>
                     <Thead>
                         <Tr>
-                            <Th>Quick Navigation</Th>
+                            <Th textColor="white">Quick Navigation</Th>
                         </Tr>
                     </Thead>
-                    <Tbody>
+                    <Tbody border="bisque">
                         <Tr>
                             <Td><Box onClick={() => navigate('/')} as='button'>Home</Box></Td>
                         </Tr>

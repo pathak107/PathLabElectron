@@ -226,7 +226,7 @@ const getReportParameters = async (reportID) => {
 }
 
 const editReport = async (data) => {
-    log.info(`Edited data for report: ${data}`)
+    log.info("Edited data for report: ", data)
     const t = await sequelize.transaction();
     const reportVals = []
     try {
