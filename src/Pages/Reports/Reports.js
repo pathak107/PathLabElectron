@@ -19,11 +19,13 @@ import { ExternalLinkIcon } from '@chakra-ui/icons'
 import { useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlertContext } from '../../Context/AlertContext';
+import FilterBar from '../../Components/FilterBar';
 
 function Reports() {
     const diaCtx = useContext(AlertContext);
     const [reports, setReports] = useState([])
     const [isLoading, setIsLoading] = useState(false);
+    const [filterObj, setFilterObj]=useState({filterKey:null, filterVal:""})
     const navigate = useNavigate();
     const [completedStatus, setCompletedStatus]= useState(false); // Value is irrelavant, just used to update UI on changin complete status
     const toggleReportStatus = async (completed, report_file_path, reportID) => {
@@ -50,11 +52,12 @@ function Reports() {
 
     const getReportList = async () => {
         setIsLoading(true);
-        const reportList = await window.api.getReports();
+        const reportList = await window.api.getReports(filterObj);
         setIsLoading(false);
         if (reportList.error) {
             diaCtx.actions.showDialog("Error", `Oops! looks like some unexpected error occured. Please try again. \n ${reportList.error}`);
         }
+        console.log(reportList)
         setReports(reportList.data)
     }
 
@@ -83,12 +86,16 @@ function Reports() {
         return () => {
             isApiSubscribed = false
         }
-    }, [completedStatus])
+    }, [completedStatus, filterObj])
     return (
         <>
             <Container maxW='container.xl' centerContent>
+                <FilterBar
+                    filterKeys={["Patient Name","Contact Number","InvoiceId", "ReportId", "PatientId", "Referring Doctor"]}
+                    submitHandler={(filterKey, filterVal)=>setFilterObj({filterKey, filterVal})}
+                />
                 {isLoading ? <Progress size='xs' isIndeterminate /> :
-                    reports.length === 0 ? <Text>Sorry there are no reports to show.</Text> :
+                    (reports && reports.length !== 0 )?
                         <Table variant='simple'>
                             <TableCaption>List of all the reports</TableCaption>
                             <Thead>
@@ -127,7 +134,9 @@ function Reports() {
                                 }
                             </Tbody>
 
-                        </Table>
+                        </Table>:
+                        <Text>Sorry no reports to show.</Text>
+                        
                 }
             </Container>
 

@@ -265,8 +265,8 @@ ipcMain.handle("generateBill", async (event, data) => {
     return billGenerated
 });
 
-ipcMain.handle('getReports', async (event, data) => {
-    const reports = await databaseService.getReports();
+ipcMain.handle('getReports', async (event, filter) => {
+    const reports = await databaseService.getReports(filter);
     return reports
 });
 
@@ -408,16 +408,16 @@ ipcMain.handle('updateDoctor', async (event, data) => {
 })
 
 
-ipcMain.handle('getInvoices', async (event, data) => {
-    return await databaseService.getInvoices();
+ipcMain.handle('getInvoices', async (event, filter) => {
+    return await databaseService.getInvoices(filter);
 })
 
 ipcMain.handle('getInvoice', async (event, invoice_id) => {
     return await databaseService.getInvoice(invoice_id);
 })
 
-ipcMain.handle('getPatients', async (event, data) => {
-    return await databaseService.getPatients();
+ipcMain.handle('getPatients', async (event, filter) => {
+    return await databaseService.getPatients(filter);
 })
 
 ipcMain.handle('getPatientDetails', async (event, patient_id) => {

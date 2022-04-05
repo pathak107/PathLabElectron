@@ -8,6 +8,7 @@ const PatientModel = require('../models/Patient');
 const ReportValueModel = require('../models/Report_Value')
 const DoctorModel = require('../models/Doctor')
 const rawData = require('../RawData/RawData')
+const { Op } = require('sequelize')
 
 const response = (status, error, data) => {
     return {
@@ -43,21 +44,23 @@ const setupModels = () => {
 
 const setupDatabase = async () => {
     try {
-        await TestDetails.bulkCreate(rawData.TestDetailsData, { include: [ TestParameter ]});
+        await TestDetails.bulkCreate(rawData.TestDetailsData, { include: [TestParameter] });
     } catch (error) {
         console.log(error)
         log.error("Database setup failed: ", error)
     }
 
 }
+
+// Test_Details CRUD
 const addTest = async (name, cost, description, testParas) => {
     try {
-        const testData={
-            name,cost,description,
+        const testData = {
+            name, cost, description,
             Test_Parameters: testParas
         }
         log.info("Adding test Data: ", testData);
-        await TestDetails.create(testData, {include:[TestParameter]});
+        await TestDetails.create(testData, { include: [TestParameter] });
         return response(consts.STATUS_SUCCESS, null, null)
     } catch (error) {
         log.error(`Error occurred in adding Test Data: ${error}`)
@@ -76,9 +79,9 @@ const getTests = async () => {
     }
 }
 
-const updateTest= async (name, cost, desc, testID)=>{
+const updateTest = async (name, cost, desc, testID) => {
     try {
-        await TestDetails.update({ name, cost, description:desc }, {
+        await TestDetails.update({ name, cost, description: desc }, {
             where: {
                 id: testID
             }
@@ -90,6 +93,8 @@ const updateTest= async (name, cost, desc, testID)=>{
     }
 }
 
+
+// Test Parameter
 const getTestParameters = async (testID) => {
     try {
         const test = await TestDetails.findOne({ where: { id: testID }, include: TestParameter })
@@ -174,7 +179,7 @@ const generateBill = async (data) => {
 
         }
 
-        invoice.bill_cache=JSON.stringify(bill)
+        invoice.bill_cache = JSON.stringify(bill)
         await invoice.save({ transaction: t })
 
         t.commit();
@@ -189,9 +194,56 @@ const generateBill = async (data) => {
 
 const getReports = async (filter) => {
     const reports = [];
-    let queryString={ include: [{ model: Invoice, include: Patient }, { model: TestDetails }], order: [['updatedAt', 'DESC']]}
-    if(filter){
-        queryString={...queryString, where:{filter}}
+    let queryString = { include: [{ model: Invoice, include: Patient }, { model: TestDetails }], order: [['updatedAt', 'DESC']] }
+    if (filter.filterKey) {
+        log.debug(filter)
+        switch (filter.filterKey) {
+            case "ReportId":
+                queryString = { ...queryString, where: { id: filter.filterVal } }
+                break;
+            case "InvoiceId":
+                queryString = { include: [{ model: Invoice, where: { id: filter.filterVal }, include: Patient }, { model: TestDetails }], order: [['updatedAt', 'DESC']] }
+                break;
+            case "Patient Name":
+                queryString = {
+                    ...queryString,
+                    where: {
+                        "$Invoice.Patient.name$": {
+                            [Op.substring]: filter.filterVal
+                        }
+                    }
+                }
+                break;
+            case "Contact Number":
+                queryString = {
+                    ...queryString,
+                    where: {
+                        "$Invoice.Patient.contact_number$": filter.filterVal
+                    }
+                }
+                break;
+            case "PatientId":
+                queryString = {
+                    ...queryString,
+                    where: {
+                        "$Invoice.Patient.id$": filter.filterVal
+                    }
+                }
+                break;
+            case "Referreing Doctor":
+                queryString = {
+                    ...queryString,
+                    where: {
+                        referred_by: {
+                            [Op.substring]: filter.filterVal
+                        }
+                    }
+                }
+                break;
+            default:
+                log.warn("No such filter key present")
+        }
+
     }
     try {
         const reportModels = await Report.findAll(queryString)
@@ -238,7 +290,7 @@ const editReport = async (data) => {
             })
         })
         log.debug("doctorID:", data.doctor_id)
-        await Report.update({ remarks: data.remarks, DoctorId: data.doctor_id? data.doctor_id: null }, {
+        await Report.update({ remarks: data.remarks, DoctorId: data.doctor_id ? data.doctor_id : null }, {
             where: {
                 id: data.report_id
             },
@@ -308,7 +360,7 @@ const toggleReportStatus = async (currentReportStatus, reportID) => {
 
 const getDoctors = async () => {
     try {
-        const doctors = await Doctor.findAll({raw: true})
+        const doctors = await Doctor.findAll({ raw: true })
         return response(consts.STATUS_SUCCESS, null, doctors)
     } catch (error) {
         log.error(`Error in getting doctors: ${error}`)
@@ -322,21 +374,21 @@ const createDoctor = async (data) => {
         field: data.field,
         degree: data.degree,
     }
-    doctorData = data.contact_number ? { ...doctorData, contact_number: data.contact_number }: doctorData
-    doctorData = data.address ? { ...doctorData, address: data.address }: doctorData
-    doctorData = data.email ? { ...doctorData, email: data.email }: doctorData
-    doctorData = data.signature_file_path ? { ...doctorData, signature_file_path: data.signature_file_path }: doctorData
+    doctorData = data.contact_number ? { ...doctorData, contact_number: data.contact_number } : doctorData
+    doctorData = data.address ? { ...doctorData, address: data.address } : doctorData
+    doctorData = data.email ? { ...doctorData, email: data.email } : doctorData
+    doctorData = data.signature_file_path ? { ...doctorData, signature_file_path: data.signature_file_path } : doctorData
 
     try {
         await Doctor.create(doctorData)
-        return response(consts.STATUS_SUCCESS,  null, null)
+        return response(consts.STATUS_SUCCESS, null, null)
     } catch (error) {
         log.error(`Error in creating doctor: ${error}`)
         return response(consts.STATUS_FAILURE, error, null)
     }
 }
 
-const updateDoctor= async (data)=>{
+const updateDoctor = async (data) => {
     let doctorData = {
         name: data.name,
         field: data.field,
@@ -359,28 +411,55 @@ const updateDoctor= async (data)=>{
     }
 }
 
-const getInvoices= async (filter)=>{
-    let queryString={raw:true}
-    if (filter){
-        queryString={...queryString ,where: {filter}}
+const getInvoices = async (filter) => {
+    let queryString = { raw: true }
+    if (filter.filterKey) {
+        switch (filter.filterKey) {
+            case "InvoiceId": queryString = { ...queryString, where: { id: filter.filterVal } }
+                break;
+            case "PatientId": queryString = {
+                ...queryString, where: {
+                    "$Patient.id$": filter.filterVal
+                },
+                include: [Patient]
+            }
+                break
+            case "Patient Name": queryString = {
+                ...queryString, where: {
+                    "$Patient.name$": {
+                        [Op.substring]: filter.filterVal
+                    }
+                },
+                include: [Patient]
+            }
+                break;
+            case "Contact Number": queryString = {
+                ...queryString, where: {
+                    "$Patient.contact_number$": filter.filterVal
+                },
+                include: [Patient]
+            }
+                break;
+            default:
+        }
     }
     try {
         const invoices = await Invoice.findAll(queryString)
-        invoices.forEach((bill)=>{
-            bill.bill_cache=JSON.parse(bill.bill_cache)
+        invoices.forEach((bill) => {
+            bill.bill_cache = JSON.parse(bill.bill_cache)
         })
         return response(consts.STATUS_SUCCESS, null, invoices)
     } catch (error) {
-        log.error(`Error in getting list of invoice: ${error}`)
+        log.error("Error in getting list of invoice: ", error)
         return response(consts.STATUS_FAILURE, error, null)
     }
 }
 
-const getInvoice = async (invoice_id)=>{
+const getInvoice = async (invoice_id) => {
     try {
-        let invoice=await Invoice.findByPk(invoice_id)
-        invoice=invoice.get({plain:true})
-        invoice.bill_cache=JSON.parse(invoice.bill_cache)
+        let invoice = await Invoice.findByPk(invoice_id)
+        invoice = invoice.get({ plain: true })
+        invoice.bill_cache = JSON.parse(invoice.bill_cache)
         return response(consts.STATUS_SUCCESS, null, invoice)
     } catch (error) {
         log.error(`Error in getting invoice: ${error}`)
@@ -388,9 +467,29 @@ const getInvoice = async (invoice_id)=>{
     }
 }
 
-const getPatients = async ()=>{
+const getPatients = async (filter) => {
+    let queryString = { raw: true, order: [['updatedAt', 'DESC']] }
+    if (filter.filterKey) {
+        switch (filter.filterKey) {
+            case "Name": queryString = { ...queryString, where: { name: { [Op.substring]: filter.filterVal } } }
+                break;
+            case "Contact Number": queryString = { ...queryString, where: { contact_number: filter.filterVal } }
+                break;
+            case "Email": queryString = { ...queryString, where: { email: { [Op.substring]: filter.filterVal } } }
+                break;
+            case "Sex": queryString = { ...queryString, where: { gender: filter.filterVal } }
+                break;
+            case "Blood Group": queryString = { ...queryString, where: { blood_group: filter.filterVal } }
+                break;
+            case "Weight": queryString = { ...queryString, where: { weight: filter.filterVal } }
+                break;
+            case "Age": queryString = { ...queryString, where: { age: filter.filterVal } }
+                break;
+            default: log.warn("No such filter key supported.")
+        }
+    }
     try {
-        let patients=await Patient.findAll({raw:true})
+        let patients = await Patient.findAll(queryString)
         return response(consts.STATUS_SUCCESS, null, patients)
     } catch (error) {
         log.error(`Error in getting Patients: ${error}`)
@@ -398,24 +497,24 @@ const getPatients = async ()=>{
     }
 }
 
-const getPatientDetails= async (patient_id)=>{
+const getPatientDetails = async (patient_id) => {
     try {
-        let patient=await Patient.findByPk(patient_id, {
+        let patient = await Patient.findByPk(patient_id, {
             include: [
                 {
-                    model:Invoice,
-                    include:Report
-                } 
+                    model: Invoice,
+                    include: Report
+                }
             ]
         })
-        patient=patient.get({plain:true})
-        const reports=[]
-        patient.Invoices.forEach((inv)=>{
+        patient = patient.get({ plain: true })
+        const reports = []
+        patient.Invoices.forEach((inv) => {
             reports.push(...inv.Reports)
         })
-        const patientDetails={
+        const patientDetails = {
             patient,
-            invoices:patient.Invoices,
+            invoices: patient.Invoices,
             reports
 
         }
@@ -427,7 +526,7 @@ const getPatientDetails= async (patient_id)=>{
     }
 }
 
-const updatePatient=async (data, patient_id)=>{
+const updatePatient = async (data, patient_id) => {
     let patientData = {
         name: data.name,
         gender: data.gender,
@@ -445,7 +544,7 @@ const updatePatient=async (data, patient_id)=>{
     } catch (error) {
         log.error(`Error in updating patient: ${error}`)
         return response(consts.STATUS_FAILURE, error, null)
-    } 
+    }
 }
 
 module.exports = {
