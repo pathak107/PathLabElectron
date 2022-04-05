@@ -12,7 +12,6 @@ import {
     Box,
     Image,
     FormErrorMessage,
-    FormHelperText
 } from "@chakra-ui/react";
 import { ArrowUpIcon } from '@chakra-ui/icons'
 import { useContext, useState } from 'react'

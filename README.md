@@ -52,3 +52,8 @@ PathLabLite is a desktop application for all the pathology lab tests needs.
 1. Option to remove contact numbers in settings
 1. Option to add and remove test parameters
 1. Option to delete tests or any resources
+1. Referred Doctor implementation
+1. paid, balance, payment_type etc implementation
+1. Filter mechanism
+1. SMS, email etc checkbox and implentation
+1. Selection for header, footer etc customization whilre creating the report

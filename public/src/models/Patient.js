@@ -19,8 +19,15 @@ const Patient = (sequelize, association)=>{
       type: DataTypes.INTEGER,
       allowNull: false
     },
+    blood_group: {
+      type: DataTypes.STRING,
+    },
     weight: {
       type: DataTypes.INTEGER, //in kgs
+    },
+    balance: {
+      type: DataTypes.FLOAT,
+      defaultValue: 0.0
     },
     email: {
       type: DataTypes.STRING,

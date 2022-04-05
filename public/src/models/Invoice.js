@@ -14,6 +14,17 @@ const Invoice = (sequelize, association)=> {
       type: DataTypes.DOUBLE,
       defaultValue:0
     },
+    paid: {
+      type: DataTypes.DOUBLE,
+      defaultValue:0
+    },
+    balance: {
+      type: DataTypes.DOUBLE,
+      defaultValue:0
+    },
+    payment_method: {
+      type: DataTypes.STRING, // Cash, Card, Cheque, UPI, Other
+    },
     total_tax: {
       type: DataTypes.DOUBLE,
       defaultValue:0
@@ -24,7 +35,9 @@ const Invoice = (sequelize, association)=> {
     bill_file_path: {
       type: DataTypes.STRING,
     },
-  
+    barcode:{
+      type: DataTypes.STRING,
+    },
   }, {
     // Other model options go here
   });
