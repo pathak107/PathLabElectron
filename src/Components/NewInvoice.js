@@ -13,9 +13,14 @@ import {
     FormErrorMessage,
     FormLabel
 } from '@chakra-ui/react'
-import { PhoneIcon } from '@chakra-ui/icons'
+import ReactSelect from 'react-select'
+import AsyncSelect, { useAsync } from 'react-select/async';
+
+import { PhoneIcon, SearchIcon } from '@chakra-ui/icons'
 import { useContext, useState } from 'react'
 import { BillContext } from '../Context/BillContextProvider'
+
+
 const NewInvoice = () => {
     const billCtx = useContext(BillContext)
     const [singleTestID, setSingleTestID] = useState('');
@@ -24,8 +29,38 @@ const NewInvoice = () => {
             <Box borderWidth='1px' borderRadius='lg' width='lg' p={5}>
                 <VStack spacing='5'>
                     <Heading size='md'>New Invoice</Heading>
+                    <FormControl>
+                        <AsyncSelect
+                            placeholder="Search Patient with Contact Number"
+                            defaultOptions={true}
+                            loadOptions={async (val) => {
+                                const patientData = await window.api.getPatients({ filterKey: "Contact Number", filterVal: val })
+                                const options = []
+                                patientData.data.forEach((patient) => {
+                                    options.push({ value: patient, label: patient.name })
+                                })
+                                return options
+                            }}
+                            onChange={(option) => {
+                                if (option) {
+                                    const patient = option.value
+                                    billCtx.actions.setName(patient.name);
+                                    billCtx.actions.setContactNumber(patient.contact_number);
+                                    billCtx.actions.setAge(patient.age);
+                                    billCtx.actions.setGender(patient.gender);
+                                } else {
+                                    billCtx.actions.setName("");
+                                    billCtx.actions.setContactNumber("");
+                                    billCtx.actions.setAge(0);
+                                    billCtx.actions.setGender("MALE");
+                                }
+                            }}
+                            isClearable={true}
+                            noOptionsMessage={() => "No Patient with this contact number"}
+                        />
+                    </FormControl>
                     <FormControl isRequired={true} isInvalid={billCtx.state.valid.name.isInvalid}>
-                        <FormLabel htmlFor='name'>First name</FormLabel>
+                        <FormLabel htmlFor='name'>Patient Name</FormLabel>
                         <Input id='name' placeholder="Patient's Name"
                             value={billCtx.state.name} onChange={(e) => {
                                 billCtx.actions.setName(e.target.value);
@@ -34,6 +69,7 @@ const NewInvoice = () => {
                         <FormErrorMessage>{billCtx.state.valid.name.errorMsg}</FormErrorMessage>
                     </FormControl>
                     <FormControl isRequired={true} isInvalid={billCtx.state.valid.contactNumber.isInvalid}>
+                        <FormLabel htmlFor='name'>Contact Number</FormLabel>
                         <InputGroup>
                             <InputLeftElement
                                 pointerEvents='none'
@@ -45,7 +81,6 @@ const NewInvoice = () => {
                         </InputGroup>
                         <FormErrorMessage>{billCtx.state.valid.contactNumber.errorMsg}</FormErrorMessage>
                     </FormControl>
-
                     <FormControl>
                         <FormLabel htmlFor='Age'>Age</FormLabel>
                         <NumberInput
@@ -67,7 +102,7 @@ const NewInvoice = () => {
                         onChange={(e) => {
                             billCtx.actions.setGender(e.target.value)
                         }}
-                        value={billCtx.actions.gender}
+                        value={billCtx.state.gender}
                     >
                         <option value="MALE">Male</option>
                         <option value="FEMALE">Female</option>

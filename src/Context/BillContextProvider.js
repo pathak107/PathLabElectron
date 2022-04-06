@@ -41,12 +41,12 @@ const BillContextProvider = ({ children }) => {
             validations: [isPhoneNumber, isRequired]
         },
         {
-            field:"doctor",
+            field: "doctor",
             validations: [isRequired]
         },
         {
-            field:"tests",
-            validations:[isArrNotEmpty]
+            field: "tests",
+            validations: [isArrNotEmpty]
         }
     ]
     ))
@@ -78,7 +78,7 @@ const BillContextProvider = ({ children }) => {
     }
 
     const submitHandler = async () => {
-        const isValid = Validate(valid,{ name, contactNumber, doctor, tests })
+        const isValid = Validate(valid, { name, contactNumber, doctor, tests })
         if (!isValid.valid) {
             setValid(isValid.validation)
         } else {
@@ -94,7 +94,16 @@ const BillContextProvider = ({ children }) => {
                 referred_by: doctor
             })
             setIsLoading(false)
-            if (created.status === "FAILURE") {
+            if (created.status === "SUCCESS") {
+                setName("")
+                setContactNumber("")
+                setGender("MALE")
+                setAge(0)
+                setDiscount(0)
+                setTests([])
+                setDoctor("")
+                setTotalAmt(0)
+            } else {
                 ctx.actions.showDialog("Failed", "Oops! Some error occured in generating the bill. Please try again.")
             }
 
